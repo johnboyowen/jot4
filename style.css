@@ -1,0 +1,295 @@
+/* Global Reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --primary-color: #007bff;
+    --hover-color: #0056b3;
+    --success-color: #28a745;
+    --success-hover: #218838;
+    --font-family: Arial, sans-serif;
+    --padding: 10px;
+    --background-light: #f4f4f4;
+    --background-white: #fff;
+    --border-radius: 8px;
+    --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Body Styles */
+body {
+    font-family: var(--font-family);
+    background-color: var(--background-light);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 20px;
+    min-height: 100vh;
+}
+
+.container {
+    width: 90%;
+    max-width: 500px;
+    padding: 20px;
+    background-color: var(--background-white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+/* Typography */
+h1 {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-top: 10px;
+    font-size: 1rem;
+}
+
+/* Input, Select, Textarea, Button Styles */
+input, select, textarea, button {
+    width: 100%;
+    padding: var(--padding);
+    margin-top: 5px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1.5rem;
+}
+
+textarea {
+    font-size: 1.5rem;
+    line-height: 1.6; /* Better readability */
+}
+
+button {
+    margin-top: 15px;
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: var(--padding);
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: var(--hover-color);
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Status Message */
+#status {
+    margin-top: 10px;
+    text-align: center;
+    color: green;
+}
+
+/* Try Sync Button */
+#trySyncButton {
+    display: inline-block;
+    margin-top: 10px;
+    padding: var(--padding);
+    background-color: var(--success-color);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+#trySyncButton:hover {
+    background-color: var(--success-hover);
+}
+
+/* View Pending Button */
+#viewPending {
+    background-color: var(--success-color);
+    color: #fff;
+    border: 1px solid var(--success-hover);
+    border-radius: 5px;
+    font-size: 1rem;
+    padding: var(--padding);
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+}
+
+#viewPending:hover {
+    background-color: var(--success-hover);
+}
+
+/* Progress Bar */
+#progressBar {
+    width: 100%;
+    height: 20px;
+    margin-top: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    display: none; /* Hidden by default */
+}
+
+/* Pending Submissions Section */
+.pending-submissions {
+    margin-top: 20px;
+    border-top: 1px solid #ddd;
+    padding-top: 10px;
+}
+
+/* Button Group */
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.button-group button {
+    flex: 1;
+    padding: var(--padding);
+    font-size: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        width: 100%;
+        box-shadow: none;
+    }
+
+    input, select, textarea, button {
+        font-size: 0.9rem;
+    }
+
+    h1 {
+        font-size: 1.2rem;
+    }
+}
+
+/* Checkbox Alignment */
+.form-group input[type="checkbox"] {
+    display: inline-block;
+    width: auto;
+    margin-right: 5px;
+}
+
+.form-group label[for="rememberMe"] {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Prevent Scroll Bounce */
+html, body {
+    overscroll-behavior-y: contain;
+}
+
+/* Select Focus */
+select:focus {
+    outline: 2px solid var(--primary-color);
+}
+
+/* Spinner Styles */
+#spinner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999; /* Ensure it stays above all other content */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+}
+
+#spinner .spinner {
+    border: 16px solid #f3f3f3; /* Light grey */
+    border-top: 16px solid var(--primary-color); /* Blue */
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Filled Fields */
+.filled {
+    border: 2px solid green;
+    background-color: #e6ffe6; /* Optional: light green background */
+}
+
+/* Answered State */
+.answered {
+    background-color: #e6ffe6;
+    border: 2px solid green;
+}
+
+.title-container {
+    display: flex;
+    justify-content: center; /* Center the items horizontally */
+    align-items: center; /* Align items vertically */
+    gap: 10px; /* Space between title and icon */
+    margin-bottom: 20px;
+}
+
+.title-container h1 {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.title-logo {
+    width: 30px; /* Adjust size */
+    height: 30px;
+    object-fit: contain; /* Scale image proportionally */
+}
+
+
+#storage-info {
+    font-family: Arial, sans-serif;
+    background-color: #f0f8ff;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    margin: 20px auto;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#storage-progress {
+    width: 90%;
+    max-width: 400px;
+    margin: 10px auto;
+    display: block;
+}
+
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}

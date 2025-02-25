@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deer Cull Submissions</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+</head>
+
+
+<body>
+  <div class="container">
+    <div class="title-container">
+    <h1>Deer Cull Submissions</h1>
+    <img src="icons/Deer.png" alt="Logo" class="title-logo">
+    </div>
+
+    <div id="storage-info">
+      <p>Loading storage usage...</p>
+  </div>
+  <progress id="storage-progress" value="0" max="100"></progress>
+
+
+  <!-- Button Group for "Show Form," "View Pending Submissions," and "Try Sync" -->
+  <div class="button-group">
+    <button id="viewPending">View Pending Submissions →</button>
+    <button id="showForm" style="display: none;">Show Form</button>
+    <button id="trySyncButton" style="display: none;">Try Sync Now</button>
+  </div>
+
+   <p id="status"></p>   
+    
+  <div id="formContainer">
+    <form id="offlineForm">
+
+    
+   <!-- Capture Location Button -->
+    <div class="form-group">
+      <label>Capture Location</label>
+      <button type="button" id="captureGps">Capture GPS</button>
+      <p id="gpsStatus">
+        Latitude: <span id="latitudeDisplay">N/A</span>, 
+        Longitude: <span id="longitudeDisplay">N/A</span>
+      </p>
+      <p id="timerDisplay">Time remaining: 180s</p> <!-- Countdown Timer -->
+    </div>
+
+    
+ <!-- Your Name -->
+      <div class="form-group">
+        <label for="name">Your Name</label>
+        <select id="name" name="name" required>
+          <option value="">Please Select</option>
+          <option value="Drummournie Deer Forest Management (Darrell Robertson 2596)">Drummournie Deer Forest Management (Darrell Robertson 2596)</option>
+          <option value="Environmental and Engineering Solutions Ltd (Michael Stokes 1615)">Environmental and Engineering Solutions Ltd (Michael Stokes 1615)</option>
+          <option value="Alasdair Macaskill 224">Alasdair Macaskill 224</option>
+          <option value="David Balharry 247">David Balharry 247</option>
+          <option value="Scott Speed">Scott Speed</option>
+          <option value="Cape Adventures (David Shaw)">Cape Adventures (David Shaw)</option>
+        </select>
+      </div>
+      
+      
+      <!-- Land Type -->
+      <div class="form-group">
+        <label for="landType">Land Type</label>
+        <select id="landType" name="landType" required>
+          <option value="">Please Select</option>
+          <option value="Enclosed Woodland">Enclosed Woodland</option>
+          <option value="Enclosed Agriculture">Enclosed Agriculture</option>
+          <option value="Open Range">Open Range</option>
+        </select>
+      </div>
+
+      <!-- Maturity -->
+      <div class="form-group">
+        <label for="maturity">Maturity</label>
+        <select id="maturity" name="maturity" required>
+          <option value="">Please Select</option>
+          <option value="Stag">Stag</option>
+          <option value="Hind">Hind</option>
+          <option value="Calf">Calf</option>
+        </select>
+      </div>
+
+      <!-- Species -->
+      <div class="form-group">
+        <label for="species">Species</label>
+        <select id="species" name="species" required>
+          <option value="">Please Select</option>
+          <option value="Red">Red</option>
+          <option value="Sika">Sika</option>
+          <option value="Red/Sika Hybrid">Red/Sika Hybrid</option>
+          <option value="Roe">Roe</option>
+          <option value="Fallow">Fallow</option>
+          <option value="Muntjac">Muntjac</option>
+        </select>
+      </div>
+
+      <!-- Carcass Fate -->
+      <div class="form-group">
+        <label for="carcassFate">Carcass Fate</label>
+        <select id="carcassFate" name="carcassFate" required>
+          <option value="">Please Select</option>
+          <option value="Extracted">Extracted</option>
+          <option value="Hill Butchered">Hill Butchered</option>
+          <option value="Left">Left</option>
+        </select>
+      </div>
+
+      <!-- Attach Photos -->
+      <div class="form-group">
+        <label>Attach Photos</label>
+        <button type="button" id="takePhoto">Take Photo</button>
+        <div id="photoPreview"></div>
+        <small>Note: Maximum 5 photos.</small>
+      </div>
+
+<!-- Notes -->
+<div class="form-group">
+  <label for="notes">Notes</label>
+  <textarea id="notes" name="notes" rows="4" placeholder="Enter any notes here..."></textarea>
+</div>
+
+
+
+
+
+    <input type="hidden" id="latitude" name="latitude">
+    <input type="hidden" id="longitude" name="longitude">
+
+    <button type="submit" style="font-weight: bold;">Submit</button>
+  </form>
+
+</div>
+
+
+
+
+  <!-- Pending Submissions Section -->
+  <div id="pendingSubmissions" class="pending-submissions" style="display: none;">
+    <div id="pendingList"></div>
+    <progress id="progressBar" max="100" style="display: none;"></progress>
+  </div>
+</div>
+
+
+<script src="deer_cull_submissions.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then((registration) => {
+        console.log('Service Worker registered with scope:', registration.scope);
+      })
+      .catch((error) => {
+        console.error('Service Worker registration failed:', error);
+      });
+  }
+
+    // Prevent pull-to-refresh on touch devices
+        document.addEventListener('touchmove', function (event) {
+            if (event.touches.length > 1) {
+                event.preventDefault();
+            }
+        }, { passive: false });
+
+  
+</script>
+
+<script src="dropdown-highlight.js"></script>
+
+</body>
+</html>

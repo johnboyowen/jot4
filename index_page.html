@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Index Page</title>
+<style>
+    /* Position the version number in the bottom left corner */
+    .version {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      font-size: 0.8rem;
+      color: grey;
+    }
+  </style>
+</head>
+<body>
+
+<div id="spinner" style="display: none;">
+    <div class="overlay"></div>
+    <div class="spinner"></div>
+</div>
+
+
+<div class="container">
+  <div class="title-container">
+    <h1>JOT Home Page</h1>
+    <img src="icons/Home.png" alt="Logo" class="title-logo">
+  </div>
+
+
+<div class="button-group" style="flex-direction: column;">
+    <button onclick="location.href='site_sign_in.html'">
+        Site Sign In <span id="pendingCountSiteSignIn">(0)</span>
+    </button>
+    <button onclick="location.href='deer_cull_submissions.html'">
+        Deer Cull Submissions <span id="pendingCountDeerCull">(0)</span>
+    </button>
+    <button onclick="location.href='observations.html'">
+        Observations <span id="pendingCountObservations">(0)</span>
+    </button>
+    <button id="syncAll" style="background-color: lightgreen; color: black;">Sync All Submissions</button>
+    <button onclick="logout()" style="background-color: lightcoral; color: black;">Logout</button>
+</div>
+
+<!-- Version Display in Bottom Left Corner -->
+<p class="version">Ver2.2</p>
+
+    
+    <script src="index.js"></script>
+</body>
+</html>
