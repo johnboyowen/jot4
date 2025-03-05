@@ -94,6 +94,12 @@ button:disabled {
     color: green;
 }
 
+#error{
+    margin-top: 10px;
+    text-align: center;
+    color: red;
+}
+
 /* Try Sync Button */
 #trySyncButton {
     display: inline-block;

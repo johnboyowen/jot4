@@ -1,35 +1,45 @@
-function login() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+async function login() {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
     const rememberMe = document.getElementById('rememberMe').checked;
 
-    // Check credentials (replace this with actual authentication logic as needed)
-    if (username === "Deer" && password === "jot") {
-        // If login is successful, show success status
-        document.getElementById('status').innerText = 'Login successful!';
-        
-        // Store login status
-        if (rememberMe) {
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('username', username);
+    const apiUrl = "https://script.google.com/macros/s/AKfycbxyKCu2b4PsAjYV3O_e4CTOs7OYRoNuw5OsKqZUdIMnPp53tp9wqqLyal8EchuXmdtpRw/exec";
+
+    try {
+        const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            document.getElementById('status').innerText = result.message;
+
+            if (rememberMe) {
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('username', username);
+            } else {
+                sessionStorage.setItem('isLoggedIn', 'true');
+            }
+
+            window.location.href = 'index_page.html';
         } else {
-            sessionStorage.setItem('isLoggedIn', 'true');
+            document.getElementById('error').innerText = result.message;
         }
-        
-        // Redirect to the main app page
-        window.location.href = 'index_page.html';
-    } else {
-        // Display invalid credentials message
-        document.getElementById('status').innerText = 'Invalid credentials';
+    } catch (error) {
+        document.getElementById('error').innerText = 'Login failed. Try again.';
     }
 }
 
-// Check if the user is already logged in
+
 function checkLoginStatus() {
     if (localStorage.getItem('isLoggedIn') === 'true' || sessionStorage.getItem('isLoggedIn') === 'true') {
-        window.location.href = 'index_page.html'; // Adjust to your main app page
+        window.location.href = 'index_page.html';
+    } else {
+        console.log("No active login session found.");
     }
 }
 
-// Run checkLoginStatus on page load
 window.onload = checkLoginStatus;

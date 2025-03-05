@@ -135,3 +135,13 @@ document.addEventListener('DOMContentLoaded', updatePendingCounts);
 // Listen for localStorage updates to keep counts live
 window.addEventListener('storage', updatePendingCounts);
 
+
+function checkLoginStatus() {
+    if (localStorage.getItem('isLoggedIn') === 'true' || sessionStorage.getItem('isLoggedIn') === 'true') {
+        console.log("Active login session found.");
+    } else {
+        window.location.href = 'index.html';
+    }
+}
+
+window.onload = checkLoginStatus;
