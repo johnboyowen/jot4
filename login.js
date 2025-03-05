@@ -1,45 +1,69 @@
-async function login() {
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const rememberMe = document.getElementById('rememberMe').checked;
+const apiUrl = "https://script.google.com/macros/s/AKfycbyBCgbKT8Gbm7lw6O4b9CHyWwLz0_ItFJHezb_7ntfmAFJqf5hCU39yOZ6YElY6mjGOyA/exec";
 
-    const apiUrl = "https://script.google.com/macros/s/AKfycbxyKCu2b4PsAjYV3O_e4CTOs7OYRoNuw5OsKqZUdIMnPp53tp9wqqLyal8EchuXmdtpRw/exec";
-
+async function fetchAndStoreCredentials() {
     try {
-        const response = await fetch(apiUrl, {
-            method: "POST",
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: JSON.stringify({ username, password })
-        });
-
+        const response = await fetch(apiUrl);
         const result = await response.json();
 
         if (result.success) {
-            document.getElementById('status').innerText = result.message;
-
-            if (rememberMe) {
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('username', username);
-            } else {
-                sessionStorage.setItem('isLoggedIn', 'true');
-            }
-
-            window.location.href = 'index_page.html';
+            localStorage.setItem("credentials", JSON.stringify(result.credentials));
         } else {
-            document.getElementById('error').innerText = result.message;
+            console.error("Failed to fetch credentials:", result.message);
         }
     } catch (error) {
-        document.getElementById('error').innerText = 'Login failed. Try again.';
+        console.error("Error fetching credentials:", error);
     }
 }
 
+function login() {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const rememberMe = document.getElementById('rememberMe').checked;
+console.log(localStorage.getItem("credentials"));
 
-function checkLoginStatus() {
-    if (localStorage.getItem('isLoggedIn') === 'true' || sessionStorage.getItem('isLoggedIn') === 'true') {
+    const credentials = JSON.parse(localStorage.getItem("credentials")) || [];
+
+    let isValid = credentials.some(encoded => {
+        let decoded = atob(encoded);  
+        let [storedUser, storedPass] = decoded.split(":");
+        return storedUser === username && storedPass === password;
+    });
+
+    if (isValid) {
+        document.getElementById('status').innerText = "Login successful";
+
+        if (rememberMe) {
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('username', username);
+        } else {
+            sessionStorage.setItem('isLoggedIn', 'true');
+        }
+
         window.location.href = 'index_page.html';
     } else {
-        console.log("No active login session found.");
+        document.getElementById('error').innerText = "Invalid credentials. Try again.";
     }
 }
 
-window.onload = checkLoginStatus;
+async function refreshCredentialsIfOnline() {
+    if (navigator.onLine) {
+        console.log("Online: Fetching latest credentials...");
+        await fetchAndStoreCredentials();
+    } else {
+        console.log("Offline: Using stored credentials.");
+    }
+}
+
+async function checkLoginStatusAndLoadData() {
+    console.log("Checking login status...");
+
+    if (localStorage.getItem('isLoggedIn') === 'true' || sessionStorage.getItem('isLoggedIn') === 'true') {
+        console.log("User is logged in.");
+        await refreshCredentialsIfOnline();
+    } else {
+        console.log("No active login session found.");
+        await refreshCredentialsIfOnline();
+    }
+}
+
+window.onload = checkLoginStatusAndLoadData;

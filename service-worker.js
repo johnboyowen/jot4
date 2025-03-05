@@ -75,6 +75,22 @@ self.addEventListener('install', (event) => {
 self.addEventListener('fetch', (event) => {
     const requestUrl = new URL(event.request.url);
 
+    const noCacheEndpoints = [
+        'https://script.google.com/macros/s/AKfycbyBCgbKT8Gbm7lw6O4b9CHyWwLz0_ItFJHezb_7ntfmAFJqf5hCU39yOZ6YElY6mjGOyA/exec', 
+    ];
+
+    // Check if the request should bypass cache
+    if (noCacheEndpoints.some(endpoint => requestUrl.href === endpoint)) {
+        event.respondWith(
+            fetch(event.request).then((networkResponse) => {
+                return networkResponse;
+            }).catch(() => {
+                return new Response('Network error', { status: 503 });
+            })
+        );
+        return;
+    }
+
     let cacheName = GENERAL_CACHE;
 
     if (requestUrl.pathname.includes('/site_sign_in')) {
@@ -102,6 +118,7 @@ self.addEventListener('fetch', (event) => {
         }).catch(() => caches.match('/index.html')) // Fallback to index.html if offline
     );
 });
+
 
 // Activate event
 self.addEventListener('activate', (event) => {

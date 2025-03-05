@@ -337,3 +337,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+
+function checkLoginStatus() {
+    if (localStorage.getItem('isLoggedIn') === 'true' || sessionStorage.getItem('isLoggedIn') === 'true') {
+        console.log("Active login session found.");
+    } else {
+        window.location.href = 'index.html';
+    }
+}
+
+window.onload = checkLoginStatus;
