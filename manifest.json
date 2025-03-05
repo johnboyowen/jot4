@@ -1,6 +1,6 @@
 {
-  "name": "JOT2",
-  "short_name": "JOT2",
+  "name": "JOT4",
+  "short_name": "JOT4",
   "description": "An offline form app for capturing data and syncing when online.",
   "start_url": "/index.html",
   "display": "standalone",
