@@ -33,22 +33,86 @@ document.addEventListener("DOMContentLoaded", () => {
 
     gpsButton.addEventListener("click", () => {
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
+            let watchId;
+            let timerId;
+            const maxTime = 180; 
+            let remainingTime = maxTime;
+            let lastLatitude = null;  
+            let lastLongitude = null;
+            let lastAccuracy = null; 
+            const timerDisplay = document.createElement("div");
+            timerDisplay.style.marginTop = "5px";
+            timerDisplay.style.color = "#666";
+            statusDisplay.parentNode.insertBefore(timerDisplay, statusDisplay.nextSibling);
+
+            function stopWatching() {
+                if (watchId) {
+                    navigator.geolocation.clearWatch(watchId);
+                    watchId = null;
+                }
+                if (timerId) {
+                    clearInterval(timerId);
+                    timerId = null;
+                }
+                updateTimer("Timer stopped.");
+
+                if (remainingTime <= 0 && lastLatitude !== null && lastLongitude !== null) {
+                    document.getElementById("latitude").value = lastLatitude;
+                    document.getElementById("longitude").value = lastLongitude;
+                    latitudeDisplay.textContent = lastLatitude;
+                    longitudeDisplay.textContent = lastLongitude;
+                    updateStatus(`Timer expired. Using last available coordinates (accuracy: ${lastAccuracy ? lastAccuracy.toFixed(2) : 'unknown'} meters).`);
+                }
+            }
+
+            function updateTimer(message) {
+                timerDisplay.textContent = message || `Time remaining: ${remainingTime}s`;
+            }
+
+            // Start the countdown timer
+            timerId = setInterval(() => {
+                remainingTime--;
+                if (remainingTime <= 0) {
+                    updateTimer("Time expired. Using last available coordinates.");
+                    stopWatching();
+                } else {
+                    updateTimer();
+                }
+            }, 1000); 
+
+            updateStatus("Acquiring high-accuracy GPS location...");
+
+            watchId = navigator.geolocation.watchPosition(
                 (position) => {
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
-                    document.getElementById("latitude").value = latitude;
-                    document.getElementById("longitude").value = longitude;
-                    latitudeDisplay.textContent = latitude;
-                    longitudeDisplay.textContent = longitude;
-                    updateStatus("GPS location captured successfully.");
+                    const accuracy = position.coords.accuracy;
+                    lastLatitude = position.coords.latitude;
+                    lastLongitude = position.coords.longitude;
+                    lastAccuracy = accuracy;
+
+                    if (accuracy <= 10) {
+                        document.getElementById("latitude").value = lastLatitude;
+                        document.getElementById("longitude").value = lastLongitude;
+                        latitudeDisplay.textContent = lastLatitude;
+                        longitudeDisplay.textContent = lastLongitude;
+
+                        updateStatus(`High-accuracy GPS location captured (${accuracy.toFixed(2)} meters).`);
+
+                        stopWatching();
+                    } else {
+                        updateStatus(`Current GPS accuracy: ${accuracy.toFixed(2)} meters. Waiting for better accuracy...`);
+                    }
                 },
                 (error) => {
                     updateStatus(handleLocationError(error));
                     latitudeDisplay.textContent = "N/A";
                     longitudeDisplay.textContent = "N/A";
+                    stopWatching();
                 },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                {
+                    enableHighAccuracy: true, 
+                    timeout: maxTime * 1000, 
+                    maximumAge: 0           
+                }
             );
         } else {
             updateStatus("Geolocation is not supported by this browser.");
@@ -350,7 +414,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const savedData = localStorage.getItem(localStorageKey);
     if (savedData) {
         console.log("Using data from localStorage");
-        populateForm(JSON.parse(savedData));  
+        populateForm(JSON.parse(savedData));
     } else {
         console.log("No data in localStorage, fetching from server");
         fetchFormData();
