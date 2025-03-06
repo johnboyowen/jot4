@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,152 +13,142 @@
 <body>
   <div class="container">
     <div class="title-container">
-    <h1>Observations</h1>
-    <img src="icons/Binoculars.png" alt="Logo" class="title-logo">
+      <h1>Observations</h1>
+      <img src="icons/Binoculars.png" alt="Logo" class="title-logo">
     </div>
 
-  <div class="button-group">
-    <button id="viewPending">View Pending Submissions →</button>
-    <button id="showForm" style="display: none;">Show Form</button>
-    <button id="trySyncButton" style="display: none;">Try Sync Now</button>
+    <div class="button-group">
+      <button id="viewPending">View Pending Submissions →</button>
+      <button id="showForm" style="display: none;">Show Form</button>
+      <button id="trySyncButton" style="display: none;">Try Sync Now</button>
+    </div>
+
+    <p id="status"></p>
+
+    <div id="formContainer">
+      <form id="offlineForm">
+
+
+        <!-- Capture Location -->
+        <div class="form-group">
+          <label>Capture Location</label>
+          <button type="button" id="captureGps">Capture GPS</button>
+          <p id="gpsStatus">
+            Latitude: <span id="latitudeDisplay">N/A</span>,
+            Longitude: <span id="longitudeDisplay">N/A</span>
+          </p>
+        </div>
+
+
+
+
+        <!-- Property Name -->
+        <div class="form-group">
+          <label for="propertyName">Property Name</label>
+          <select id="propertyName" name="propertyName" required>
+            <option value="">Please Select</option>
+          </select>
+        </div>
+
+        <!-- Observed Numbers -->
+        <div class="form-group">
+          <label for="observedNumbers">Observed Numbers</label>
+          <select id="observedNumbers" name="observedNumbers" required>
+            <option value="">Please Select</option>
+            <option value="0">0</option>
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+            <option value="25">25</option>
+            <option value="30">30</option>
+            <option value="35">35</option>
+            <option value="40">40</option>
+            <option value="45">45</option>
+            <option value="50">50</option>
+            <option value="55">55</option>
+            <option value="60">60</option>
+            <option value="65">65</option>
+            <option value="70">70</option>
+            <option value="75">75</option>
+            <option value="80">80</option>
+            <option value="85">85</option>
+            <option value="90">90</option>
+            <option value="95">95</option>
+          </select>
+        </div>
+
+        <!-- Third Party Interactions -->
+        <div class="form-group">
+          <label for="thirdPartyInteractions">Third Party Interactions</label>
+          <select id="thirdPartyInteractions" name="thirdPartyInteractions" required>
+            <option value="">Please Select</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+          <textarea id="thirdPartyText" name="thirdPartyText" placeholder="If yes, provide details"
+            style="display: none; font-size: 18px;"></textarea>
+        </div>
+
+        <!-- Health and Safety -->
+        <div class="form-group">
+          <label for="healthSafety">Health and Safety Recommendations/Incidents/Observations</label>
+          <select id="healthSafety" name="healthSafety" required>
+            <option value="">Please Select</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+          <textarea id="healthSafetyText" name="healthSafetyText" placeholder="If yes, provide details"
+            style="display: none; font-size: 18px;"></textarea>
+        </div>
+
+        <!-- Attach Photos -->
+        <div class="form-group">
+          <label>Attach Photos</label>
+          <button type="button" id="takePhoto">Take Photo</button>
+          <div id="photoPreview"></div>
+          <small>Note: Maximum 5 photos.</small>
+        </div>
+
+
+
+        <input type="hidden" id="latitude" name="latitude">
+        <input type="hidden" id="longitude" name="longitude">
+
+        <button type="submit" style="font-weight: bold;">Submit</button>
+      </form>
+
+    </div>
+
+    <!-- Pending Submissions Section -->
+    <div id="pendingSubmissions" class="pending-submissions" style="display: none;">
+      <div id="pendingList"></div>
+      <progress id="progressBar" max="100" style="display: none;"></progress>
+    </div>
   </div>
 
-<p id="status"></p>
-    
-  <div id="formContainer">
-    <form id="offlineForm">
+  <script src="observations.js"></script>
 
-
-      <!-- Capture Location -->
-      <div class="form-group">
-        <label>Capture Location</label>
-        <button type="button" id="captureGps">Capture GPS</button>
-        <p id="gpsStatus">
-          Latitude: <span id="latitudeDisplay">N/A</span>, 
-          Longitude: <span id="longitudeDisplay">N/A</span>
-        </p>
-      </div>
-
-
-
-
-      <!-- Property Name -->
-      <div class="form-group">
-        <label for="propertyName">Property Name</label>
-        <select id="propertyName" name="propertyName" required>
-          <option value="">Please Select</option>
-          <option value="Torris, Skye">Torris, Skye</option>
-          <option value="Sconser, Skye">Sconser, Skye</option>
-          <option value="Strathaird, Skye">Strathaird, Skye</option>
-          <option value="Nevis">Nevis</option>
-          <option value="East Schiehallion">East Schiehallion</option>
-          <option value="Knoydart">Knoydart</option>
-          <option value="Quinag">Quinag</option>
-          <option value="Sandwood Bay">Sandwood Bay</option>
-          <option value="Glenlude">Glenlude</option>
-          <option value="Kylesku">Kylesku</option>
-          <option value="Thirlmere">Thirlmere</option>
-          <option value="Charterhouse Priory">Charterhouse Priory</option>
-        </select>
-      </div>
-
-      <!-- Observed Numbers -->
-      <div class="form-group">
-        <label for="observedNumbers">Observed Numbers</label>
-        <select id="observedNumbers" name="observedNumbers" required>
-          <option value="">Please Select</option>
-          <option value="0">0</option>
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="15">15</option>
-          <option value="20">20</option>
-          <option value="25">25</option>
-          <option value="30">30</option>
-          <option value="35">35</option>
-          <option value="40">40</option>
-          <option value="45">45</option>
-          <option value="50">50</option>
-          <option value="55">55</option>
-          <option value="60">60</option>
-          <option value="65">65</option>
-          <option value="70">70</option>
-          <option value="75">75</option>
-          <option value="80">80</option>
-          <option value="85">85</option>
-          <option value="90">90</option>
-          <option value="95">95</option>
-        </select>
-      </div>
-
-      <!-- Third Party Interactions -->
-      <div class="form-group">
-        <label for="thirdPartyInteractions">Third Party Interactions</label>
-        <select id="thirdPartyInteractions" name="thirdPartyInteractions" required>
-          <option value="">Please Select</option>
-          <option value="Yes">Yes</option>
-          <option value="No">No</option>
-        </select>
-        <textarea id="thirdPartyText" name="thirdPartyText" placeholder="If yes, provide details" style="display: none; font-size: 18px;"></textarea>
-      </div>
-
-      <!-- Health and Safety -->
-      <div class="form-group">
-        <label for="healthSafety">Health and Safety Recommendations/Incidents/Observations</label>
-        <select id="healthSafety" name="healthSafety" required>
-          <option value="">Please Select</option>
-          <option value="Yes">Yes</option>
-          <option value="No">No</option>
-        </select>
-        <textarea id="healthSafetyText" name="healthSafetyText" placeholder="If yes, provide details" style="display: none; font-size: 18px;"></textarea>
-      </div>
-
-      <!-- Attach Photos -->
-      <div class="form-group">
-        <label>Attach Photos</label>
-        <button type="button" id="takePhoto">Take Photo</button>
-        <div id="photoPreview"></div>
-        <small>Note: Maximum 5 photos.</small>
-      </div>
-
-
-
-      <input type="hidden" id="latitude" name="latitude">
-      <input type="hidden" id="longitude" name="longitude">
-
-      <button type="submit" style="font-weight: bold;">Submit</button>
-    </form>
-    
-  </div>
-
-  <!-- Pending Submissions Section -->
-  <div id="pendingSubmissions" class="pending-submissions" style="display: none;">
-    <div id="pendingList"></div>
-    <progress id="progressBar" max="100" style="display: none;"></progress>
-  </div>
-</div>
-
-<script src="observations.js"></script>
-
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then((registration) => {
-        console.log('Service Worker registered with scope:', registration.scope);
-      })
-      .catch((error) => {
-        console.error('Service Worker registration failed:', error);
-      });
-  }
-
-  // Prevent pull-to-refresh on touch devices
-  document.addEventListener('touchmove', function (event) {
-    if (event.touches.length > 1) {
-      event.preventDefault();
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
     }
-  }, { passive: false });
-</script>
 
-<script src="dropdown-highlight.js"></script>
+    // Prevent pull-to-refresh on touch devices
+    document.addEventListener('touchmove', function (event) {
+      if (event.touches.length > 1) {
+        event.preventDefault();
+      }
+    }, { passive: false });
+  </script>
+
+  <script src="dropdown-highlight.js"></script>
 </body>
-</html>
 
+</html>

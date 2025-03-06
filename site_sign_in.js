@@ -157,54 +157,54 @@ document.addEventListener("DOMContentLoaded", () => {
         input.click();
     });
 
-form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-    if (!document.getElementById("latitude").value || !document.getElementById("longitude").value) {
-        alert("Please capture GPS location before submitting.");
-        return;
-    }
+        if (!document.getElementById("latitude").value || !document.getElementById("longitude").value) {
+            alert("Please capture GPS location before submitting.");
+            return;
+        }
 
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
-    data.additionalStalkers = Array.from(
-    form.querySelector("#additionalStalkers").selectedOptions,
-    option => option.value
-    ).join(","); // Convert array to a comma-separated string
-    
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        data.additionalStalkers = Array.from(
+            form.querySelector("#additionalStalkers").selectedOptions,
+            option => option.value
+        ).join(","); // Convert array to a comma-separated string
 
-    data.timestamp = new Date().toLocaleString();
-    data.photos = JSON.stringify(photoData);
 
-    try {
-        await saveAndSync(data);
-        form.reset();
-        photoData.length = 0;
-        photoPreview.innerHTML = "";
-        document.getElementById("latitude").value = "";
-        document.getElementById("longitude").value = "";
-        latitudeDisplay.textContent = "N/A";
-        longitudeDisplay.textContent = "N/A";
-        updateStatus("Form submitted successfully.");
+        data.timestamp = new Date().toLocaleString();
+        data.photos = JSON.stringify(photoData);
 
-        // Reset green-highlighted dropdowns
-        resetDropdowns();
+        try {
+            await saveAndSync(data);
+            form.reset();
+            photoData.length = 0;
+            photoPreview.innerHTML = "";
+            document.getElementById("latitude").value = "";
+            document.getElementById("longitude").value = "";
+            latitudeDisplay.textContent = "N/A";
+            longitudeDisplay.textContent = "N/A";
+            updateStatus("Form submitted successfully.");
 
-        updatePendingCount();
-    } catch (error) {
-        console.error("Submission error:", error);
-        alert("There was an error submitting the form. Please try again.");
-    }
-});
+            // Reset green-highlighted dropdowns
+            resetDropdowns();
 
-// Function to reset dropdown highlights
-function resetDropdowns() {
-    const dropdowns = document.querySelectorAll("select");
-    dropdowns.forEach((dropdown) => {
-        dropdown.classList.remove("answered"); // Remove the 'answered' class
-        dropdown.value = ""; // Reset the dropdown to its default value
+            updatePendingCount();
+        } catch (error) {
+            console.error("Submission error:", error);
+            alert("There was an error submitting the form. Please try again.");
+        }
     });
-}
+
+    // Function to reset dropdown highlights
+    function resetDropdowns() {
+        const dropdowns = document.querySelectorAll("select");
+        dropdowns.forEach((dropdown) => {
+            dropdown.classList.remove("answered"); // Remove the 'answered' class
+            dropdown.value = ""; // Reset the dropdown to its default value
+        });
+    }
 
     function saveAndSync(data) {
         saveOffline(data);
@@ -341,6 +341,56 @@ function checkLoginStatus() {
     } else {
         window.location.href = 'index.html';
     }
+}
+
+const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbxeGuXtjo1EGnRZKnd9URTzEPYpSaFArLk5FzqXY9pBhaRVybqKAXLXcRhEW2TLSpeOsA/exec";
+const localStorageKey = "siteSignInFormData";
+
+document.addEventListener("DOMContentLoaded", function () {
+    const savedData = localStorage.getItem(localStorageKey);
+    if (savedData) {
+        console.log("Using data from localStorage");
+        populateForm(JSON.parse(savedData));  
+    } else {
+        console.log("No data in localStorage, fetching from server");
+        fetchFormData();
+    }
+
+    if (navigator.onLine) {
+        fetchFormData();
+    }
+});
+
+function fetchFormData() {
+    fetch(loadDropdownScriptUrl)
+        .then(response => response.json())
+        .then(data => {
+            populateForm(data);
+            localStorage.setItem(localStorageKey, JSON.stringify(data));
+        })
+        .catch(error => {
+            console.error("Error fetching form data:", error);
+        });
+}
+
+function populateForm(data) {
+    if (!data) return;
+
+    const propertySelect = document.getElementById("propertyName");
+    const contractorSelect = document.getElementById("leadContractor");
+    const stalkersSelect = document.getElementById("additionalStalkers");
+
+    propertySelect.innerHTML = generateOptions(data.propertyNames);
+    contractorSelect.innerHTML = generateOptions(data.leadContractors);
+    stalkersSelect.innerHTML = generateOptions(data.additionalStalkers, true);
+}
+
+function generateOptions(options, isMultiple = false) {
+    let optionsHTML = isMultiple ? "" : `<option value="">Please Select</option>`;
+    options.forEach(option => {
+        optionsHTML += `<option value="${option}">${option}</option>`;
+    });
+    return optionsHTML;
 }
 
 window.onload = checkLoginStatus;

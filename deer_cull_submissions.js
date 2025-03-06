@@ -452,4 +452,57 @@ function checkLoginStatus() {
     }
 }
 
+const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbxeGuXtjo1EGnRZKnd9URTzEPYpSaFArLk5FzqXY9pBhaRVybqKAXLXcRhEW2TLSpeOsA/exec";
+const localStorageKey = "deerCullFormData";
+
+document.addEventListener("DOMContentLoaded", function () {
+    const savedData = localStorage.getItem(localStorageKey);
+    if (savedData) {
+        populateForm(JSON.parse(savedData)); 
+    } else {
+        fetchFormData();
+    }
+
+    if (navigator.onLine) {
+        fetchFormData();
+    }
+});
+
+function fetchFormData() {
+    fetch(loadDropdownScriptUrl)
+        .then(response => response.json())
+        .then(data => {
+            populateForm(data);
+            localStorage.setItem(localStorageKey, JSON.stringify(data)); 
+        })
+        .catch(error => {
+            console.error("Error fetching form data:", error);
+        });
+}
+
+function populateForm(data) {
+    if (!data) return;
+
+    const nameSelect = document.getElementById("name");
+    const landTypeSelect = document.getElementById("landType");
+    const maturitySelect = document.getElementById("maturity");
+    const speciesSelect = document.getElementById("species");
+    const carcassFateSelect = document.getElementById("carcassFate");
+
+    nameSelect.innerHTML = generateOptions(data.leadContractors);
+    landTypeSelect.innerHTML = generateOptions(data.landTypes);
+    maturitySelect.innerHTML = generateOptions(data.maturity);
+    speciesSelect.innerHTML = generateOptions(data.species);
+    carcassFateSelect.innerHTML = generateOptions(data.carcassFates);
+}
+
+function generateOptions(options, isMultiple = false) {
+    let optionsHTML = isMultiple ? "" : `<option value="">Please Select</option>`;
+    options.forEach(option => {
+        optionsHTML += `<option value="${option}">${option}</option>`;
+    });
+    return optionsHTML;
+}
+
+
 window.onload = checkLoginStatus;

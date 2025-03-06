@@ -346,4 +346,48 @@ function checkLoginStatus() {
     }
 }
 
+const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbxeGuXtjo1EGnRZKnd9URTzEPYpSaFArLk5FzqXY9pBhaRVybqKAXLXcRhEW2TLSpeOsA/exec";
+const localStorageKey = "observationsFormData";
+
+document.addEventListener("DOMContentLoaded", function () {
+    const savedData = localStorage.getItem(localStorageKey);
+    if (savedData) {
+        populateForm(JSON.parse(savedData));  
+    } else {
+        fetchFormData();
+    }
+
+    if (navigator.onLine) {
+        fetchFormData();
+    }
+});
+
+function fetchFormData() {
+    fetch(loadDropdownScriptUrl)
+        .then(response => response.json())
+        .then(data => {
+            populateForm(data);
+            localStorage.setItem(localStorageKey, JSON.stringify(data));
+        })
+        .catch(error => {
+            console.error("Error fetching form data:", error);
+        });
+}
+
+function populateForm(data) {
+    if (!data) return;
+
+    const propertySelect = document.getElementById("propertyName");
+
+    propertySelect.innerHTML = generateOptions(data.propertyNames);
+}
+
+function generateOptions(options, isMultiple = false) {
+    let optionsHTML = isMultiple ? "" : `<option value="">Please Select</option>`;
+    options.forEach(option => {
+        optionsHTML += `<option value="${option}">${option}</option>`;
+    });
+    return optionsHTML;
+}
+
 window.onload = checkLoginStatus;

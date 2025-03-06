@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,177 +13,140 @@
 <body>
   <div class="container">
     <div class="title-container">
-    <h1>Site Sign In</h1>
-    <img src="icons/Site.png" alt="Logo" class="title-logo">
+      <h1>Site Sign In</h1>
+      <img src="icons/Site.png" alt="Logo" class="title-logo">
     </div>
 
 
-  <!-- Button Group for "Show Form," "View Pending Submissions," and "Try Sync" -->
-  <div class="button-group">
-    <button id="viewPending">View Pending Submissions →</button>
-    <button id="showForm" style="display: none;">Show Form</button>
-    <button id="trySyncButton" style="display: none;">Try Sync Now</button>
-  </div>
+    <!-- Button Group for "Show Form," "View Pending Submissions," and "Try Sync" -->
+    <div class="button-group">
+      <button id="viewPending">View Pending Submissions →</button>
+      <button id="showForm" style="display: none;">Show Form</button>
+      <button id="trySyncButton" style="display: none;">Try Sync Now</button>
+    </div>
 
     <p id="status"></p>
-    
-  <div id="formContainer">
-    <form id="offlineForm">
 
-      <!-- Capture Location Button -->
-      <div class="form-group">
-        <label>Capture Location</label>
-        <button type="button" id="captureGps">Capture GPS</button>
-        <p id="gpsStatus">
-          Latitude: <span id="latitudeDisplay">N/A</span>, 
-          Longitude: <span id="longitudeDisplay">N/A</span>
-        </p>
-      </div>
-      
+    <div id="formContainer">
+      <form id="offlineForm">
 
-      <!-- Property Name -->
-      <div class="form-group">
-        <label for="propertyName">Property Name</label>
-        <select id="propertyName" name="propertyName" required>
-          <option value="">Please Select</option>
-          <option value="Torrin, Skye">Torrin, Skye</option>
-          <option value="Sconser, Skye">Sconser, Skye</option>
-          <option value="Strathaird, Skye">Strathaird, Skye</option>
-          <option value="Nevis">Nevis</option>
-          <option value="East Schiehallion">East Schiehallion</option>
-          <option value="Knoydart">Knoydart</option>
-          <option value="Quinag">Quinag</option>
-          <option value="Sandwood Bay">Sandwood Bay</option>
-          <option value="Glenlude">Glenlude</option>
-          <option value="Kylesku">Kylesku</option>
-          <option value="Thirlmere">Thirlmere</option>
-          <option value="Charterhouse Priory">Charterhouse Priory</option>
-          <option value="Marsco, Skye">Marsco, Skye</option>
-        </select>
-      </div>
+        <!-- Capture Location Button -->
+        <div class="form-group">
+          <label>Capture Location</label>
+          <button type="button" id="captureGps">Capture GPS</button>
+          <p id="gpsStatus">
+            Latitude: <span id="latitudeDisplay">N/A</span>,
+            Longitude: <span id="longitudeDisplay">N/A</span>
+          </p>
+        </div>
 
-      <!-- Boat Inspection Done - Conditional Question -->
-      <div class="form-group" id="boatInspectionGroup" style="display: none;">
-        <label for="boatInspection">Boat Inspection Done</label>
-        <select id="boatInspection" name="boatInspection">
-          <option value="">Please Select</option>
-          <option value="Yes">Yes</option>
-          <option value="No">No</option>
-        </select>
-      </div>
 
-      <!-- Lead Contractor -->
-      <div class="form-group">
-        <label for="leadContractor">Lead Contractor</label>
-        <select id="leadContractor" name="leadContractor" required>
-          <option value="">Please Select</option>
-          <option value="Drummournie Deer Forest Management (Darrell Robertson 2596)">Drummournie Deer Forest Management (Darrell Robertson 2596)</option>
-          <option value="Environmental and Engineering Solutions Ltd (Michael Stokes 1615)">Environmental and Engineering Solutions Ltd (Michael Stokes 1615)</option>
-          <option value="Alasdair Macaskill 224">Alasdair Macaskill 224</option>
-          <option value="David Balharry 247">David Balharry 247</option>
-          <option value="Scott Speed">Scott Speed</option>
-          <option value="Cape Adventures (David Shaw)">Cape Adventures (David Shaw)</option>
-        </select>
-      </div>
+        <!-- Property Name -->
+        <div class="form-group">
+          <label for="propertyName">Property Name</label>
+          <select id="propertyName" name="propertyName" required>
+            <option value="">Please Select</option>
+          </select>
+        </div>
 
-      <!-- Number of Stalkers -->
-      <div class="form-group">
-        <label for="numberOfStalkers">Number of Stalkers</label>
-        <input type="number" id="numberOfStalkers" name="numberOfStalkers" required>
-      </div>
+        <!-- Boat Inspection Done - Conditional Question -->
+        <div class="form-group" id="boatInspectionGroup" style="display: none;">
+          <label for="boatInspection">Boat Inspection Done</label>
+          <select id="boatInspection" name="boatInspection">
+            <option value="">Please Select</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
 
-      <!-- Names of Additional Stalkers -->
-      <div class="form-group">
-  <label for="additionalStalkers">Names of Additional Stalkers</label>
-  <select id="additionalStalkers" name="additionalStalkers[]" multiple>
-    <option value="Terence Bain 1967">Terence Bain 1967</option>
-    <option value="John A Boyd 225">John A Boyd 225</option>
-    <option value="Kevin Campbell 3584">Kevin Campbell 3584</option>
-    <option value="Ronan Dugan 2934">Ronan Dugan 2934</option>
-    <option value="Iain King 3315">Iain King 3315</option>
-    <option value="Chris Macdonald 159">Chris Macdonald 159</option>
-    <option value="Donald Mackay 2488">Donald Mackay 2488</option>
-    <option value="Stuart Macsween 2097">Stuart Macsween 2097</option>
-    <option value="Matthew Thompson 1507">Matthew Thompson 1507</option>
-    <option value="Alasdair Macaskill 224">Alasdair Macaskill 224</option>
-    <option value="Steven McClenaghan 3798">Steven McClenaghan 3798</option>
-    <option value="Connor MacIsaac 3831">Connor MacIsaac 3831</option>
-    <option value="Jamie Sutherland">Jamie Sutherland</option>
-    <option value="Sophie Clark">Sophie Clark</option>
-    <option value="Malcolm Morrison">Malcolm Morrison</option>
-  </select>
-</div>
+        <!-- Lead Contractor -->
+        <div class="form-group">
+          <label for="leadContractor">Lead Contractor</label>
+          <select id="leadContractor" name="leadContractor" required>
+            <option value="">Please Select</option>
+          </select>
+        </div>
 
-      <!-- JMT Approval given via Whatsapp group -->
-      <div class="form-group">
-        <label for="jmtApproval">JMT Approval given via Whatsapp group</label>
-        <select id="jmtApproval" name="jmtApproval" required>
-          <option value="">Please Select</option>
-          <option value="Yes">Yes</option>
-          <option value="No">No</option>
-        </select>
-      </div>
+        <!-- Number of Stalkers -->
+        <div class="form-group">
+          <label for="numberOfStalkers">Number of Stalkers</label>
+          <input type="number" id="numberOfStalkers" name="numberOfStalkers" required>
+        </div>
 
-      <!-- Exemptions Granted -->
-      <div class="form-group">
-        <label for="exemptions">Exemptions Granted</label>
-        <select id="exemptions" name="exemptions" required>
-          <option value="">Please Select</option>
-          <option value="None">None</option>
-          <option value="Out of Season">Out of Season</option>
-          <option value="Night Shooting">Night Shooting</option>
-          <option value="Both">Both</option>
-        </select>
-      </div>
+        <!-- Names of Additional Stalkers -->
+        <div class="form-group">
+          <label for="additionalStalkers">Names of Additional Stalkers</label>
+          <select id="additionalStalkers" name="additionalStalkers[]" multiple>
+          </select>
+        </div>
 
-      <!-- Attach Photos -->
-      <div class="form-group">
-        <label>Attach Photos</label>
-        <button type="button" id="takePhoto">Take Photo</button>
-        <div id="photoPreview"></div>
-        <small>Note: Maximum 5 photos.</small>
-      </div>
+        <!-- JMT Approval given via Whatsapp group -->
+        <div class="form-group">
+          <label for="jmtApproval">JMT Approval given via Whatsapp group</label>
+          <select id="jmtApproval" name="jmtApproval" required>
+            <option value="">Please Select</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+
+        <!-- Exemptions Granted -->
+        <div class="form-group">
+          <label for="exemptions">Exemptions Granted</label>
+          <select id="exemptions" name="exemptions" required>
+            <option value="">Please Select</option>
+          </select>
+        </div>
+
+        <!-- Attach Photos -->
+        <div class="form-group">
+          <label>Attach Photos</label>
+          <button type="button" id="takePhoto">Take Photo</button>
+          <div id="photoPreview"></div>
+          <small>Note: Maximum 5 photos.</small>
+        </div>
 
 
 
-      <input type="hidden" id="latitude" name="latitude">
-      <input type="hidden" id="longitude" name="longitude">
+        <input type="hidden" id="latitude" name="latitude">
+        <input type="hidden" id="longitude" name="longitude">
 
-      <button type="submit" style="font-weight: bold;">Submit</button>
-    </form>
+        <button type="submit" style="font-weight: bold;">Submit</button>
+      </form>
 
+    </div>
+
+    <!-- Pending Submissions Section -->
+    <div id="pendingSubmissions" class="pending-submissions" style="display: none;">
+      <div id="pendingList"></div>
+      <progress id="progressBar" max="100" style="display: none;"></progress>
+    </div>
   </div>
 
-  <!-- Pending Submissions Section -->
-  <div id="pendingSubmissions" class="pending-submissions" style="display: none;">
-    <div id="pendingList"></div>
-    <progress id="progressBar" max="100" style="display: none;"></progress>
-  </div>
-</div>
+  <script src="site_sign_in.js"></script>
 
-<script src="site_sign_in.js"></script>
-
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then((registration) => {
-        console.log('Service Worker registered with scope:', registration.scope);
-      })
-      .catch((error) => {
-        console.error('Service Worker registration failed:', error);
-      });
-  }
-
-  // Prevent pull-to-refresh on touch devices
-  document.addEventListener('touchmove', function (event) {
-    if (event.touches.length > 1) {
-      event.preventDefault();
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
     }
-  }, { passive: false });
-</script>
 
-<script src="dropdown-highlight.js"></script>
+    // Prevent pull-to-refresh on touch devices
+    document.addEventListener('touchmove', function (event) {
+      if (event.touches.length > 1) {
+        event.preventDefault();
+      }
+    }, { passive: false });
+  </script>
+
+  <script src="dropdown-highlight.js"></script>
 
 
 </body>
+
 </html>
