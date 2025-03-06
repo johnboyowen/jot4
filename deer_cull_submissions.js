@@ -25,8 +25,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (navigator.geolocation) {
             let watchId;
             let timerId;
-            const maxTime = 180; // Maximum allowed time in seconds
+            const maxTime = 180; 
             let remainingTime = maxTime;
+            let lastLatitude = null;
+            let lastLongitude = null;
+            let lastAccuracy = null;
 
             function stopWatching() {
                 if (watchId) {
@@ -38,40 +41,45 @@ document.addEventListener("DOMContentLoaded", () => {
                     timerId = null;
                 }
                 updateTimer("Timer stopped.");
+
+                if (remainingTime <= 0 && lastLatitude !== null && lastLongitude !== null) {
+                    document.getElementById("latitude").value = lastLatitude;
+                    document.getElementById("longitude").value = lastLongitude;
+                    latitudeDisplay.textContent = lastLatitude;
+                    longitudeDisplay.textContent = lastLongitude;
+                    updateStatus(`Timer expired. Using last available coordinates (accuracy: ${lastAccuracy ? lastAccuracy.toFixed(2) : 'unknown'} meters).`);
+                }
             }
 
             function updateTimer(message) {
                 timerDisplay.textContent = message || `Time remaining: ${remainingTime}s`;
             }
 
-            // Start the countdown timer
             timerId = setInterval(() => {
                 remainingTime--;
                 if (remainingTime <= 0) {
-                    updateTimer("Time expired. Try again.");
-                    stopWatching(); // Stop watching when the timer ends
+                    updateTimer("Time expired. Using last available coordinates.");
+                    stopWatching();
                 } else {
                     updateTimer();
                 }
-            }, 1000); // Update every second
+            }, 1000);
 
             watchId = navigator.geolocation.watchPosition(
                 (position) => {
                     const accuracy = position.coords.accuracy;
+                    lastLatitude = position.coords.latitude;
+                    lastLongitude = position.coords.longitude;
+                    lastAccuracy = accuracy;
 
-                    // Check if accuracy is within acceptable range (e.g., 10 meters)
                     if (accuracy <= 10) {
-                        const latitude = position.coords.latitude;
-                        const longitude = position.coords.longitude;
-
-                        document.getElementById("latitude").value = latitude;
-                        document.getElementById("longitude").value = longitude;
-                        latitudeDisplay.textContent = latitude;
-                        longitudeDisplay.textContent = longitude;
+                        document.getElementById("latitude").value = lastLatitude;
+                        document.getElementById("longitude").value = lastLongitude;
+                        latitudeDisplay.textContent = lastLatitude;
+                        longitudeDisplay.textContent = lastLongitude;
 
                         updateStatus(`High-accuracy GPS location captured (${accuracy.toFixed(2)} meters).`);
 
-                        // Stop watching once the desired accuracy is achieved
                         stopWatching();
                     } else {
                         updateStatus(`Current GPS accuracy: ${accuracy.toFixed(2)} meters. Waiting for better accuracy...`);
@@ -84,9 +92,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     stopWatching();
                 },
                 {
-                    enableHighAccuracy: true, // Use GPS as the priority
-                    timeout: maxTime * 1000, // Set timeout in milliseconds
-                    maximumAge: 0            // Always fetch fresh location
+                    enableHighAccuracy: true,
+                    timeout: maxTime * 1000,
+                    maximumAge: 0
                 }
             );
         } else {
