@@ -15,16 +15,22 @@ async function fetchAndStoreCredentials() {
     }
 }
 
-function login() {
+async function login() {
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value.trim();
     const rememberMe = document.getElementById('rememberMe').checked;
-console.log(localStorage.getItem("credentials"));
 
-    const credentials = JSON.parse(localStorage.getItem("credentials")) || [];
+    let credentials = JSON.parse(localStorage.getItem("credentials")) || [];
+
+    if (navigator.onLine) {
+        await fetchAndStoreCredentials();
+        credentials = JSON.parse(localStorage.getItem("credentials")) || [];
+    } else {
+        console.log("Offline: Using stored credentials.");
+    }
 
     let isValid = credentials.some(encoded => {
-        let decoded = atob(encoded);  
+        let decoded = atob(encoded);
         let [storedUser, storedPass] = decoded.split(":");
         return storedUser === username && storedPass === password;
     });
