@@ -21,78 +21,78 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("deer_cull_latestStatus", message); // Store latest status message specific to Deer Cull
     }
 
-gpsButton.addEventListener("click", () => {
-    if (navigator.geolocation) {
-        let watchId;
-        let timerId;
-        const maxTime = 180; // Maximum allowed time in seconds
-        let remainingTime = maxTime;
+    gpsButton.addEventListener("click", () => {
+        if (navigator.geolocation) {
+            let watchId;
+            let timerId;
+            const maxTime = 180; // Maximum allowed time in seconds
+            let remainingTime = maxTime;
 
-        function stopWatching() {
-            if (watchId) {
-                navigator.geolocation.clearWatch(watchId);
-                watchId = null;
-            }
-            if (timerId) {
-                clearInterval(timerId);
-                timerId = null;
-            }
-            updateTimer("Timer stopped.");
-        }
-
-        function updateTimer(message) {
-            timerDisplay.textContent = message || `Time remaining: ${remainingTime}s`;
-        }
-
-        // Start the countdown timer
-        timerId = setInterval(() => {
-            remainingTime--;
-            if (remainingTime <= 0) {
-                updateTimer("Time expired. Try again.");
-                stopWatching(); // Stop watching when the timer ends
-            } else {
-                updateTimer();
-            }
-        }, 1000); // Update every second
-
-        watchId = navigator.geolocation.watchPosition(
-            (position) => {
-                const accuracy = position.coords.accuracy;
-
-                // Check if accuracy is within acceptable range (e.g., 10 meters)
-                if (accuracy <= 10) {
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
-
-                    document.getElementById("latitude").value = latitude;
-                    document.getElementById("longitude").value = longitude;
-                    latitudeDisplay.textContent = latitude;
-                    longitudeDisplay.textContent = longitude;
-
-                    updateStatus(`High-accuracy GPS location captured (${accuracy.toFixed(2)} meters).`);
-                    
-                    // Stop watching once the desired accuracy is achieved
-                    stopWatching();
-                } else {
-                    updateStatus(`Current GPS accuracy: ${accuracy.toFixed(2)} meters. Waiting for better accuracy...`);
+            function stopWatching() {
+                if (watchId) {
+                    navigator.geolocation.clearWatch(watchId);
+                    watchId = null;
                 }
-            },
-            (error) => {
-                updateStatus(handleLocationError(error));
-                latitudeDisplay.textContent = "N/A";
-                longitudeDisplay.textContent = "N/A";
-                stopWatching();
-            },
-            {
-                enableHighAccuracy: true, // Use GPS as the priority
-                timeout: maxTime * 1000, // Set timeout in milliseconds
-                maximumAge: 0            // Always fetch fresh location
+                if (timerId) {
+                    clearInterval(timerId);
+                    timerId = null;
+                }
+                updateTimer("Timer stopped.");
             }
-        );
-    } else {
-        updateStatus("Geolocation is not supported by this browser.");
-    }
-});
+
+            function updateTimer(message) {
+                timerDisplay.textContent = message || `Time remaining: ${remainingTime}s`;
+            }
+
+            // Start the countdown timer
+            timerId = setInterval(() => {
+                remainingTime--;
+                if (remainingTime <= 0) {
+                    updateTimer("Time expired. Try again.");
+                    stopWatching(); // Stop watching when the timer ends
+                } else {
+                    updateTimer();
+                }
+            }, 1000); // Update every second
+
+            watchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    const accuracy = position.coords.accuracy;
+
+                    // Check if accuracy is within acceptable range (e.g., 10 meters)
+                    if (accuracy <= 10) {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+
+                        document.getElementById("latitude").value = latitude;
+                        document.getElementById("longitude").value = longitude;
+                        latitudeDisplay.textContent = latitude;
+                        longitudeDisplay.textContent = longitude;
+
+                        updateStatus(`High-accuracy GPS location captured (${accuracy.toFixed(2)} meters).`);
+
+                        // Stop watching once the desired accuracy is achieved
+                        stopWatching();
+                    } else {
+                        updateStatus(`Current GPS accuracy: ${accuracy.toFixed(2)} meters. Waiting for better accuracy...`);
+                    }
+                },
+                (error) => {
+                    updateStatus(handleLocationError(error));
+                    latitudeDisplay.textContent = "N/A";
+                    longitudeDisplay.textContent = "N/A";
+                    stopWatching();
+                },
+                {
+                    enableHighAccuracy: true, // Use GPS as the priority
+                    timeout: maxTime * 1000, // Set timeout in milliseconds
+                    maximumAge: 0            // Always fetch fresh location
+                }
+            );
+        } else {
+            updateStatus("Geolocation is not supported by this browser.");
+        }
+    });
 
     function handleLocationError(error) {
         switch (error.code) {
@@ -196,63 +196,63 @@ gpsButton.addEventListener("click", () => {
         input.click();
     });
 
-form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-    // Ensure GPS coordinates are captured
-    if (!document.getElementById("latitude").value || !document.getElementById("longitude").value) {
-        alert("Please capture GPS location before submitting.");
-        return;
-    }
-
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
-
-    data.timestamp = new Date().toLocaleString();
-    data.photos = JSON.stringify(photoData);
-
-    updateStatus("Submitting form...");
-
-    try {
-        // Attempt to save and sync data
-        await saveAndSync(data);
-
-        // Reset the form after successful submission
-        form.reset();
-        photoData.length = 0;
-        photoPreview.innerHTML = "";
-        document.getElementById("latitude").value = "";
-        document.getElementById("longitude").value = "";
-        latitudeDisplay.textContent = "N/A";
-        longitudeDisplay.textContent = "N/A";
-        updateStatus("Form submitted successfully.");
-
-        // Reset green-highlighted dropdowns
-        resetDropdowns();
-
-        updatePendingCount();
-    } catch (error) {
-        console.error("Submission error:", error);
-
-        if (navigator.onLine) {
-            alert("There was an issue with the server. Please try again.");
-        } else {
-            // Save the data offline if the network is unavailable
-            saveOffline(data);
-            updateStatus("Network issue detected. Your form has been saved offline and will sync automatically when online.");
+        // Ensure GPS coordinates are captured
+        if (!document.getElementById("latitude").value || !document.getElementById("longitude").value) {
+            alert("Please capture GPS location before submitting.");
+            return;
         }
-    }
-});
 
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
 
-// Function to reset dropdown highlights
-function resetDropdowns() {
-    const dropdowns = document.querySelectorAll("select");
-    dropdowns.forEach((dropdown) => {
-        dropdown.classList.remove("answered"); // Remove the 'answered' class
-        dropdown.value = ""; // Reset the dropdown to its default value
+        data.timestamp = new Date().toLocaleString();
+        data.photos = JSON.stringify(photoData);
+
+        updateStatus("Submitting form...");
+
+        try {
+            // Attempt to save and sync data
+            await saveAndSync(data);
+
+            // Reset the form after successful submission
+            form.reset();
+            photoData.length = 0;
+            photoPreview.innerHTML = "";
+            document.getElementById("latitude").value = "";
+            document.getElementById("longitude").value = "";
+            latitudeDisplay.textContent = "N/A";
+            longitudeDisplay.textContent = "N/A";
+            updateStatus("Form submitted successfully.");
+
+            // Reset green-highlighted dropdowns
+            resetDropdowns();
+
+            updatePendingCount();
+        } catch (error) {
+            console.error("Submission error:", error);
+
+            if (navigator.onLine) {
+                alert("There was an issue with the server. Please try again.");
+            } else {
+                // Save the data offline if the network is unavailable
+                saveOffline(data);
+                updateStatus("Network issue detected. Your form has been saved offline and will sync automatically when online.");
+            }
+        }
     });
-}
+
+
+    // Function to reset dropdown highlights
+    function resetDropdowns() {
+        const dropdowns = document.querySelectorAll("select");
+        dropdowns.forEach((dropdown) => {
+            dropdown.classList.remove("answered"); // Remove the 'answered' class
+            dropdown.value = ""; // Reset the dropdown to its default value
+        });
+    }
 
     function saveAndSync(data) {
         saveOffline(data);
@@ -268,55 +268,55 @@ function resetDropdowns() {
         localStorage.setItem("deer_cull_responses", JSON.stringify(responses));
     }
 
-async function syncData() {
-    const responses = JSON.parse(localStorage.getItem("deer_cull_responses") || "[]");
-    if (responses.length === 0) {
-        updateStatus("No data to sync.");
-        return;
-    }
-
-    let unsyncedResponses = [];
-    for (const response of responses) {
-        try {
-            await sendToGoogleSheet(response); // Check submission success
-            updateStatus("Data synced successfully."); // Mark as synced
-        } catch (error) {
-            console.error("Sync error for response:", response, error);
-            unsyncedResponses.push(response); // Keep unsynced responses
+    async function syncData() {
+        const responses = JSON.parse(localStorage.getItem("deer_cull_responses") || "[]");
+        if (responses.length === 0) {
+            updateStatus("No data to sync.");
+            return;
         }
+
+        let unsyncedResponses = [];
+        for (const response of responses) {
+            try {
+                await sendToGoogleSheet(response); // Check submission success
+                updateStatus("Data synced successfully."); // Mark as synced
+            } catch (error) {
+                console.error("Sync error for response:", response, error);
+                unsyncedResponses.push(response); // Keep unsynced responses
+            }
+        }
+
+        // Update local storage with unsynced responses
+        localStorage.setItem("deer_cull_responses", JSON.stringify(unsyncedResponses));
+
+        if (unsyncedResponses.length > 0) {
+            updateStatus("Some data could not be synced.");
+        } else {
+            localStorage.removeItem("deer_cull_responses"); // Clear storage if all synced
+        }
+
+        updatePendingCount();
     }
 
-    // Update local storage with unsynced responses
-    localStorage.setItem("deer_cull_responses", JSON.stringify(unsyncedResponses));
+    async function sendToGoogleSheet(data) {
+        const scriptURL = "https://script.google.com/macros/s/AKfycbz7R7FuRXu4qi_cQd_Rg5sZY-D6pMEVRHol0FQRNuKXbR3MtXau6cnBuDpRxFAaozc/exec";
+        const response = await fetch(scriptURL, {
+            method: "POST",
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(data),
+        });
 
-    if (unsyncedResponses.length > 0) {
-        updateStatus("Some data could not be synced.");
-    } else {
-        localStorage.removeItem("deer_cull_responses"); // Clear storage if all synced
+        if (!response.ok) {
+            throw new Error("Failed to communicate with Google Apps Script");
+        }
+
+        const result = await response.json();
+        if (result.status !== "success") {
+            throw new Error("Google Apps Script failed to process the submission");
+        }
+
+        return true; // Return true if submission was successful
     }
-
-    updatePendingCount();
-}
-
-async function sendToGoogleSheet(data) {
-    const scriptURL = "https://script.google.com/macros/s/AKfycbz7R7FuRXu4qi_cQd_Rg5sZY-D6pMEVRHol0FQRNuKXbR3MtXau6cnBuDpRxFAaozc/exec";
-    const response = await fetch(scriptURL, {
-        method: "POST",
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(data),
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to communicate with Google Apps Script");
-    }
-
-    const result = await response.json();
-    if (result.status !== "success") {
-        throw new Error("Google Apps Script failed to process the submission");
-    }
-
-    return true; // Return true if submission was successful
-}
 
     viewPendingButton.addEventListener("click", () => {
         formContainer.style.display = "none";
@@ -458,7 +458,7 @@ const localStorageKey = "deerCullFormData";
 document.addEventListener("DOMContentLoaded", function () {
     const savedData = localStorage.getItem(localStorageKey);
     if (savedData) {
-        populateForm(JSON.parse(savedData)); 
+        populateForm(JSON.parse(savedData));
     } else {
         fetchFormData();
     }
@@ -473,7 +473,7 @@ function fetchFormData() {
         .then(response => response.json())
         .then(data => {
             populateForm(data);
-            localStorage.setItem(localStorageKey, JSON.stringify(data)); 
+            localStorage.setItem(localStorageKey, JSON.stringify(data));
         })
         .catch(error => {
             console.error("Error fetching form data:", error);
