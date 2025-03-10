@@ -422,7 +422,7 @@ function checkLoginStatus() {
     }
 }
 
-const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbzM9tkIAFX1n0YhF0TlMU1NOWx2yUGQj_lKOmGnDzop8gaPdKq5CK4dWnEErXGwyyKxcA/exec";
+const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbzM9tkIAFX1n0YhF0TlMU1NOWx2yUGQj_lKOmGnDzop8gaPdKq5CK4dWnEErXGwyyKxcA/exec?action=dropdowns";
 const localStorageKey = STORAGE_KEYS.signInData;
 
 document.addEventListener("DOMContentLoaded", function () {

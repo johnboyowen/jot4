@@ -80,7 +80,7 @@ self.addEventListener('fetch', (event) => {
     ];
 
     // Check if the request should bypass cache
-    if (noCacheEndpoints.some(endpoint => requestUrl.href === endpoint)) {
+    if (noCacheEndpoints.some(endpoint => requestUrl.href.includes(endpoint))) {
         event.respondWith(
             fetch(event.request).then((networkResponse) => {
                 return networkResponse;
