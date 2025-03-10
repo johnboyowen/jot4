@@ -1,3 +1,8 @@
+const STORAGE_KEYS = {
+    signInData: 'site_sign_in_data',
+    signInStatus: 'site_sign_in_status',
+};
+
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("offlineForm");
     const statusDisplay = document.getElementById("status");
@@ -35,11 +40,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (navigator.geolocation) {
             let watchId;
             let timerId;
-            const maxTime = 180; 
+            const maxTime = 180;
             let remainingTime = maxTime;
-            let lastLatitude = null;  
+            let lastLatitude = null;
             let lastLongitude = null;
-            let lastAccuracy = null; 
+            let lastAccuracy = null;
             const timerDisplay = document.createElement("div");
             timerDisplay.style.marginTop = "5px";
             timerDisplay.style.color = "#666";
@@ -78,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     updateTimer();
                 }
-            }, 1000); 
+            }, 1000);
 
             updateStatus("Acquiring high-accuracy GPS location...");
 
@@ -109,9 +114,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     stopWatching();
                 },
                 {
-                    enableHighAccuracy: true, 
-                    timeout: maxTime * 1000, 
-                    maximumAge: 0           
+                    enableHighAccuracy: true,
+                    timeout: maxTime * 1000,
+                    maximumAge: 0
                 }
             );
         } else {
@@ -292,8 +297,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         let unsyncedResponses = [];
+        const username = localStorage.getItem("username")
         for (const response of responses) {
             try {
+                response.username = username
                 await sendToGoogleSheet(response);
                 updateStatus("Data synced successfully.");
             } catch (error) {
@@ -313,7 +320,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function sendToGoogleSheet(data) {
-        const scriptURL = "https://script.google.com/macros/s/AKfycbyG0-lJ3fKWjBR0ya74y5V02JkDBsZuVdRXTTxU375TQcSNU_41JT8VSGSYbHj-5-js/exec";
+        data.action = "signin"
+        const scriptURL = "https://script.google.com/macros/s/AKfycbxi3DVoVUTjMoC8TVbYTYJnmnIPiN3oit__-lYDUYT7aUD1JInvewOD6CqMWApizQWIlw/exec";
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -385,6 +393,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+window.addEventListener('storage', function (event) {
+    if (Object.values(STORAGE_KEYS).includes(event.key)) {
+        updatePendingCounts();
+        updateFormAccessibility();
+    }
+});
+
 document.addEventListener("DOMContentLoaded", () => {
     const dropdowns = document.querySelectorAll("select");
 
@@ -407,8 +422,8 @@ function checkLoginStatus() {
     }
 }
 
-const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbxeGuXtjo1EGnRZKnd9URTzEPYpSaFArLk5FzqXY9pBhaRVybqKAXLXcRhEW2TLSpeOsA/exec";
-const localStorageKey = "siteSignInFormData";
+const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbzM9tkIAFX1n0YhF0TlMU1NOWx2yUGQj_lKOmGnDzop8gaPdKq5CK4dWnEErXGwyyKxcA/exec";
+const localStorageKey = STORAGE_KEYS.signInData;
 
 document.addEventListener("DOMContentLoaded", function () {
     const savedData = localStorage.getItem(localStorageKey);
@@ -443,10 +458,12 @@ function populateForm(data) {
     const propertySelect = document.getElementById("propertyName");
     const contractorSelect = document.getElementById("leadContractor");
     const stalkersSelect = document.getElementById("additionalStalkers");
+    const exemptionsSelect = document.getElementById("exemptions");
 
     propertySelect.innerHTML = generateOptions(data.propertyNames);
     contractorSelect.innerHTML = generateOptions(data.leadContractors);
     stalkersSelect.innerHTML = generateOptions(data.additionalStalkers, true);
+    exemptionsSelect.innerHTML = generateOptions(data.exemptions);
 }
 
 function generateOptions(options, isMultiple = false) {

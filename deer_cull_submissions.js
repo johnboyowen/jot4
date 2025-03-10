@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (navigator.geolocation) {
             let watchId;
             let timerId;
-            const maxTime = 180; 
+            const maxTime = 180;
             let remainingTime = maxTime;
             let lastLatitude = null;
             let lastLongitude = null;
@@ -284,10 +284,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         let unsyncedResponses = [];
+        const username = localStorage.getItem("username")
+        const signIn = JSON.parse(localStorage.getItem("site_sign_in_status"))
+
         for (const response of responses) {
             try {
-                await sendToGoogleSheet(response); // Check submission success
-                updateStatus("Data synced successfully."); // Mark as synced
+                response.username = username
+                response.name = signIn.propertyName
+                await sendToGoogleSheet(response);
+                updateStatus("Data synced successfully.");
             } catch (error) {
                 console.error("Sync error for response:", response, error);
                 unsyncedResponses.push(response); // Keep unsynced responses
@@ -307,7 +312,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function sendToGoogleSheet(data) {
-        const scriptURL = "https://script.google.com/macros/s/AKfycbz7R7FuRXu4qi_cQd_Rg5sZY-D6pMEVRHol0FQRNuKXbR3MtXau6cnBuDpRxFAaozc/exec";
+        data.action = "deer_cull"
+        const scriptURL = "https://script.google.com/macros/s/AKfycbzM9tkIAFX1n0YhF0TlMU1NOWx2yUGQj_lKOmGnDzop8gaPdKq5CK4dWnEErXGwyyKxcA/exec";
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -460,7 +466,7 @@ function checkLoginStatus() {
     }
 }
 
-const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbxeGuXtjo1EGnRZKnd9URTzEPYpSaFArLk5FzqXY9pBhaRVybqKAXLXcRhEW2TLSpeOsA/exec";
+const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbzM9tkIAFX1n0YhF0TlMU1NOWx2yUGQj_lKOmGnDzop8gaPdKq5CK4dWnEErXGwyyKxcA/exec?action=dropdowns";
 const localStorageKey = "deerCullFormData";
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -491,13 +497,13 @@ function fetchFormData() {
 function populateForm(data) {
     if (!data) return;
 
-    const nameSelect = document.getElementById("name");
+    // const nameSelect = document.getElementById("name");
     const landTypeSelect = document.getElementById("landType");
     const maturitySelect = document.getElementById("maturity");
     const speciesSelect = document.getElementById("species");
     const carcassFateSelect = document.getElementById("carcassFate");
 
-    nameSelect.innerHTML = generateOptions(data.leadContractors);
+    // nameSelect.innerHTML = generateOptions(data.leadContractors);
     landTypeSelect.innerHTML = generateOptions(data.landTypes);
     maturitySelect.innerHTML = generateOptions(data.maturity);
     speciesSelect.innerHTML = generateOptions(data.species);

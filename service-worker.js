@@ -1,7 +1,7 @@
-const CACHE_SITE_SIGN_IN = 'site-sign-in-cache-v46';
-const CACHE_DEER_CULL = 'deer-cull-cache-v46';
-const CACHE_OBSERVATIONS = 'observations-cache-v46';
-const GENERAL_CACHE = 'general-cache-v46';
+const CACHE_SITE_SIGN_IN = 'site-sign-in-cache-v47';
+const CACHE_DEER_CULL = 'deer-cull-cache-v47';
+const CACHE_OBSERVATIONS = 'observations-cache-v47';
+const GENERAL_CACHE = 'general-cache-v47';
 
 // Install event
 self.addEventListener('install', (event) => {
@@ -76,7 +76,7 @@ self.addEventListener('fetch', (event) => {
     const requestUrl = new URL(event.request.url);
 
     const noCacheEndpoints = [
-        'https://script.google.com/macros/s/AKfycbyBCgbKT8Gbm7lw6O4b9CHyWwLz0_ItFJHezb_7ntfmAFJqf5hCU39yOZ6YElY6mjGOyA/exec', 
+        'https://script.google.com/macros/s/AKfycbxdlAjqCgMPr6uPo-lFQCiCdDIt6JoAUBLKMAMnk7PSCt-oUOg1CJzGvqjW_OWAKZgazg/exec'
     ];
 
     // Check if the request should bypass cache

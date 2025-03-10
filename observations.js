@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const gpsButton = document.getElementById("captureGps");
     const latitudeDisplay = document.getElementById("latitudeDisplay");
     const longitudeDisplay = document.getElementById("longitudeDisplay");
-    const propertyNameSelect = document.getElementById("propertyName");
+    // const propertyNameSelect = document.getElementById("propertyName");
 
     const MAX_FILE_SIZE = 15000000; // 15MB per photo
     const MAX_PHOTOS = 5; // Maximum number of photos allowed
@@ -41,11 +41,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (navigator.geolocation) {
             let watchId;
             let timerId;
-            const maxTime = 180; 
+            const maxTime = 180;
             let remainingTime = maxTime;
-            let lastLatitude = null;  
-            let lastLongitude = null; 
-            let lastAccuracy = null;  
+            let lastLatitude = null;
+            let lastLongitude = null;
+            let lastAccuracy = null;
             const timerDisplay = document.createElement("div");
             timerDisplay.style.marginTop = "5px";
             timerDisplay.style.color = "#666";
@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     updateTimer();
                 }
-            }, 1000); 
+            }, 1000);
 
             updateStatus("Acquiring high-accuracy GPS location...");
 
@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 {
                     enableHighAccuracy: true,
                     timeout: maxTime * 1000,
-                    maximumAge: 0          
+                    maximumAge: 0
                 }
             );
         } else {
@@ -293,8 +293,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         let unsyncedResponses = [];
+        const username = localStorage.getItem("username")
+        const signIn = JSON.parse(localStorage.getItem("site_sign_in_status"))
+
         for (const response of responses) {
             try {
+                response.username = username
+                response.propertyName = signIn.propertyName
                 await sendToGoogleSheet(response);
                 updateStatus("Data synced successfully.");
             } catch (error) {
@@ -314,7 +319,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function sendToGoogleSheet(data) {
-        const scriptURL = "https://script.google.com/macros/s/AKfycbywWOzFRrkypAlrbHhdBid60QTn1EurJ7Ko-hnMK3T9iy4nrtyabg6bOqoGrgBMXNDQ/exec";
+        data.action = "observation"
+        const scriptURL = `https://script.google.com/macros/s/AKfycbzM9tkIAFX1n0YhF0TlMU1NOWx2yUGQj_lKOmGnDzop8gaPdKq5CK4dWnEErXGwyyKxcA/exec`;
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -410,48 +416,48 @@ function checkLoginStatus() {
     }
 }
 
-const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbxeGuXtjo1EGnRZKnd9URTzEPYpSaFArLk5FzqXY9pBhaRVybqKAXLXcRhEW2TLSpeOsA/exec";
+const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbzM9tkIAFX1n0YhF0TlMU1NOWx2yUGQj_lKOmGnDzop8gaPdKq5CK4dWnEErXGwyyKxcA/exec";
 const localStorageKey = "observationsFormData";
 
-document.addEventListener("DOMContentLoaded", function () {
-    const savedData = localStorage.getItem(localStorageKey);
-    if (savedData) {
-        populateForm(JSON.parse(savedData));
-    } else {
-        fetchFormData();
-    }
+// document.addEventListener("DOMContentLoaded", function () {
+//     const savedData = localStorage.getItem(localStorageKey);
+//     if (savedData) {
+//         populateForm(JSON.parse(savedData));
+//     } else {
+//         fetchFormData();
+//     }
 
-    if (navigator.onLine) {
-        fetchFormData();
-    }
-});
+//     if (navigator.onLine) {
+//         fetchFormData();
+//     }
+// });
 
-function fetchFormData() {
-    fetch(loadDropdownScriptUrl)
-        .then(response => response.json())
-        .then(data => {
-            populateForm(data);
-            localStorage.setItem(localStorageKey, JSON.stringify(data));
-        })
-        .catch(error => {
-            console.error("Error fetching form data:", error);
-        });
-}
+// function fetchFormData() {
+//     fetch(loadDropdownScriptUrl)
+//         .then(response => response.json())
+//         .then(data => {
+//             populateForm(data);
+//             localStorage.setItem(localStorageKey, JSON.stringify(data));
+//         })
+//         .catch(error => {
+//             console.error("Error fetching form data:", error);
+//         });
+// }
 
-function populateForm(data) {
-    if (!data) return;
+// function populateForm(data) {
+//     if (!data) return;
 
-    const propertySelect = document.getElementById("propertyName");
+//     const propertySelect = document.getElementById("propertyName");
 
-    propertySelect.innerHTML = generateOptions(data.propertyNames);
-}
+//     propertySelect.innerHTML = generateOptions(data.propertyNames);
+// }
 
-function generateOptions(options, isMultiple = false) {
-    let optionsHTML = isMultiple ? "" : `<option value="">Please Select</option>`;
-    options.forEach(option => {
-        optionsHTML += `<option value="${option}">${option}</option>`;
-    });
-    return optionsHTML;
-}
+// function generateOptions(options, isMultiple = false) {
+//     let optionsHTML = isMultiple ? "" : `<option value="">Please Select</option>`;
+//     options.forEach(option => {
+//         optionsHTML += `<option value="${option}">${option}</option>`;
+//     });
+//     return optionsHTML;
+// }
 
 window.onload = checkLoginStatus;

@@ -1,4 +1,4 @@
-const apiUrl = "https://script.google.com/macros/s/AKfycbyBCgbKT8Gbm7lw6O4b9CHyWwLz0_ItFJHezb_7ntfmAFJqf5hCU39yOZ6YElY6mjGOyA/exec";
+const apiUrl = "https://script.google.com/macros/s/AKfycbxdlAjqCgMPr6uPo-lFQCiCdDIt6JoAUBLKMAMnk7PSCt-oUOg1CJzGvqjW_OWAKZgazg/exec?action=login";
 
 async function fetchAndStoreCredentials() {
     try {
@@ -37,10 +37,10 @@ async function login() {
 
     if (isValid) {
         document.getElementById('status').innerText = "Login successful";
+        localStorage.setItem('username', username);
 
         if (rememberMe) {
             localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('username', username);
         } else {
             sessionStorage.setItem('isLoggedIn', 'true');
         }
