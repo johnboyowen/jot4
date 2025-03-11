@@ -265,6 +265,240 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (syncAllButton) {
         syncAllButton.addEventListener('click', syncAllSubmissions);
     }
+
+    const statusDisplay = document.getElementById("status");
+    const latitudeDisplay = document.getElementById("latitudeDisplay");
+    const longitudeDisplay = document.getElementById("longitudeDisplay");
+
+    function updateStatus(message) {
+        statusDisplay.textContent = message;
+        localStorage.setItem("observations_latestStatus", message); 
+    }
+
+    let locationTrackingInterval = null;
+    const existingSiteLOcationHistory = localStorage.getItem("site_sign_in_location_histories")
+    let locationHistory = existingSiteLOcationHistory ? JSON.parse(existingSiteLOcationHistory) : [];
+
+    // Function to update location history for an existing submission
+    async function updateLocationHistory(formId) {
+        // Ensure we have location history to save
+        if (locationHistory.length === 0) {
+            updateStatus("No location history to update.");
+            return;
+        }
+
+        // Format location history as comma-separated values
+        // Format: "lat1,lon1;lat2,lon2;lat3,lon3"
+        localStorage.setItem("site_sign_in_location_histories", JSON.stringify(locationHistory))
+        const locationHistoryString = locationHistory.map(loc =>
+            `${loc.latitude},${loc.longitude}`
+        ).join(';');
+
+        // Check if online
+        if (!navigator.onLine) {
+            // Store update request for later sync
+            saveUpdateRequest(formId, locationHistoryString);
+            updateStatus("Offline: Location history update saved for later sync.");
+            return;
+        }
+
+        try {
+            // Get user and property info
+            const username = localStorage.getItem("username");
+            const signIn = JSON.parse(localStorage.getItem("site_sign_in_status"));
+
+            // Prepare data for update
+            const updateData = {
+                action: "updateLocation",
+                formId: formId,
+                locationHistory: locationHistoryString,
+                username: username,
+                propertyName: signIn.propertyName
+            };
+
+            // Send update to server
+            await sendUpdateToGoogleSheet(updateData);
+            updateStatus("Location history updated successfully.");
+
+            // Remove any pending update requests for this form
+            removePendingUpdate(formId);
+        } catch (error) {
+            console.error("Update error:", error);
+            // Store update request for later sync
+            saveUpdateRequest(formId, locationHistoryString);
+            updateStatus("Error updating location history. Will retry when online.");
+        }
+    }
+
+    // Function to save update request for later sync
+    function saveUpdateRequest(formId, locationHistoryString) {
+        const pendingUpdates = JSON.parse(localStorage.getItem("observations_pending_updates") || "[]");
+
+        // Check if update for this form already exists
+        const existingIndex = pendingUpdates.findIndex(update => update.formId === formId);
+        if (existingIndex >= 0) {
+            // Update existing request
+            pendingUpdates[existingIndex].locationHistory = locationHistoryString;
+        } else {
+            // Add new update request
+            pendingUpdates.push({
+                formId: formId,
+                locationHistory: locationHistoryString,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        localStorage.setItem("observations_pending_updates", JSON.stringify(pendingUpdates));
+    }
+
+    // Function to remove pending update
+    function removePendingUpdate(formId) {
+        const pendingUpdates = JSON.parse(localStorage.getItem("observations_pending_updates") || "[]");
+        const filteredUpdates = pendingUpdates.filter(update => update.formId !== formId);
+        localStorage.setItem("observations_pending_updates", JSON.stringify(filteredUpdates));
+    }
+
+    // Function to send update to Google Sheet
+    async function sendUpdateToGoogleSheet(data) {
+        data.action = "site_sign_in_location_update"
+        const scriptURL = `https://script.google.com/macros/s/AKfycbxP-mW-Wup7w9DckzHEE8vsHcmXemDvAEtlHNO3VlNbTWluVMKJzVT7L8QfWegnXmi-_Q/exec`;
+        const response = await fetch(scriptURL, {
+            method: "POST",
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(data),
+        });
+
+        if (!response.ok) {
+            throw new Error("Network response was not ok");
+        }
+
+        return response.json();
+    }
+
+    // Function to sync all pending location updates
+    async function syncPendingLocationUpdates() {
+        const pendingUpdates = JSON.parse(localStorage.getItem("observations_pending_updates") || "[]");
+        if (pendingUpdates.length === 0) {
+            return;
+        }
+
+        updateStatus(`Syncing ${pendingUpdates.length} pending location updates...`);
+
+        // Get user and property info
+        const username = localStorage.getItem("username");
+        const signIn = JSON.parse(localStorage.getItem("site_sign_in_status"));
+
+        let failedUpdates = [];
+
+        for (const update of pendingUpdates) {
+            try {
+                const updateData = {
+                    action: "updateLocation",
+                    formId: update.formId,
+                    locationHistory: update.locationHistory,
+                    username: username,
+                    propertyName: signIn.propertyName
+                };
+
+                await sendUpdateToGoogleSheet(updateData);
+            } catch (error) {
+                console.error("Sync error for update:", update, error);
+                failedUpdates.push(update);
+            }
+        }
+
+        if (failedUpdates.length > 0) {
+            localStorage.setItem("observations_pending_updates", JSON.stringify(failedUpdates));
+            updateStatus(`${pendingUpdates.length - failedUpdates.length} updates synced, ${failedUpdates.length} failed.`);
+        } else {
+            localStorage.removeItem("observations_pending_updates");
+            updateStatus("All location updates synced successfully.");
+        }
+    }
+
+    function startLocationTracking() {
+        if (locationTrackingInterval) {
+            clearInterval(locationTrackingInterval);
+        }
+
+        captureCurrentLocation();
+
+        locationTrackingInterval = setInterval(() => {
+            captureCurrentLocation();
+
+            const formId = localStorage.getItem("current_site_sign_in_tracking_form_id");
+            if (formId) {
+                updateLocationHistory(formId);
+            }
+        }, 10 * 1000);
+
+        updateStatus("Location tracking started. Updates every 10 minutes.");
+    }
+
+    if (localStorage.getItem("current_site_sign_in_tracking_form_id")) {
+        startLocationTracking()
+    }
+
+    function captureCurrentLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+                    const timestamp = new Date().toISOString();
+
+                    // Add to location history
+                    locationHistory.push({
+                        latitude,
+                        longitude,
+                        accuracy,
+                        timestamp
+                    });
+
+                    // Update the display
+                    latitudeDisplay.textContent = latitude;
+                    longitudeDisplay.textContent = longitude;
+
+                    updateStatus(`Location updated (${accuracy.toFixed(2)} meters accuracy). Total locations: ${locationHistory.length}`);
+                    updateLocationHistoryDisplay();
+                },
+                (error) => {
+                    updateStatus(`Failed to update location: ${handleLocationError(error)}`);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        } else {
+            updateStatus("Geolocation is not supported by this browser.");
+        }
+    }
+
+    function updateLocationHistoryDisplay() {
+        const locationHistoryElement = document.getElementById("locationHistory");
+        if (locationHistoryElement) {
+            locationHistoryElement.innerHTML = "";
+
+            if (locationHistory.length === 0) {
+                locationHistoryElement.textContent = "No location history yet.";
+                return;
+            }
+
+            const list = document.createElement("ul");
+            locationHistory.forEach((loc, index) => {
+                const item = document.createElement("li");
+                const time = new Date(loc.timestamp).toLocaleTimeString();
+                item.textContent = `${index + 1}. ${time}: ${loc.latitude}, ${loc.longitude} (±${loc.accuracy.toFixed(2)}m)`;
+                list.appendChild(item);
+            });
+
+            locationHistoryElement.appendChild(list);
+        }
+    }
+
 });
 
 window.addEventListener('storage', function (event) {

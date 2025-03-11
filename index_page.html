@@ -33,7 +33,12 @@
     </div>
     <p style="text-align:center; margin-bottom:10px">Username: <span id="username"></span></p>
     <p style="text-align:center">Site sign in: <span id="siteSignInStatus">Wait...</span></p>
+    <p id="status"></p>
 
+    <p id="gpsStatus" style="margin-top:10px">
+      Latitude: <span id="latitudeDisplay">N/A</span>,
+      Longitude: <span id="longitudeDisplay">N/A</span>
+    </p>
 
     <div class="button-group" style="flex-direction: column;">
       <button id="signInButton" onclick="location.href='site_sign_in.html'" disabled>
