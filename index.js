@@ -8,11 +8,11 @@ const STORAGE_KEYS = {
 
 // Script URLs for API endpoints
 const SCRIPT_URLS = {
-    siteSignIn: "https://script.google.com/macros/s/AKfycbzeE4OFXJFIFkGHmNKFGM8zSwU1oclqZgGdkRApnrYJQtrfn07RWapRj8Z7K_NO-n-Y0w/exec",
-    deerCull: "https://script.google.com/macros/s/AKfycbz7R7FuRXu4qi_cQd_Rg5sZY-D6pMEVRHol0FQRNuKXbR3MtXau6cnBuDpRxFAaozc/exec",
-    observations: "https://script.google.com/macros/s/AKfycbywWOzFRrkypAlrbHhdBid60QTn1EurJ7Ko-hnMK3T9iy4nrtyabg6bOqoGrgBMXNDQ/exec",
+    siteSignIn: "https://script.google.com/macros/s/AKfycbwf0KLSJAaYuiERLOTqvt5463rRAHXRMluIV7nmH53liOkEqcb7wGCOFdZEPQX-Z60ImQ/exec",
+    deerCull: "https://script.google.com/macros/s/AKfycbwf0KLSJAaYuiERLOTqvt5463rRAHXRMluIV7nmH53liOkEqcb7wGCOFdZEPQX-Z60ImQ/exec",
+    observations: "https://script.google.com/macros/s/AKfycbwf0KLSJAaYuiERLOTqvt5463rRAHXRMluIV7nmH53liOkEqcb7wGCOFdZEPQX-Z60ImQ/exec",
     // Use the same URL as siteSignIn since we've updated that script to handle both functions
-    signInStatus: "https://script.google.com/macros/s/AKfycbxdlAjqCgMPr6uPo-lFQCiCdDIt6JoAUBLKMAMnk7PSCt-oUOg1CJzGvqjW_OWAKZgazg/exec?action=checkSignIn"
+    signInStatus: "https://script.google.com/macros/s/AKfycbwf0KLSJAaYuiERLOTqvt5463rRAHXRMluIV7nmH53liOkEqcb7wGCOFdZEPQX-Z60ImQ/exec?action=checkSignIn"
 };
 
 // Register service worker for periodic sync (if supported)
@@ -41,6 +41,48 @@ function logout() {
     localStorage.removeItem(STORAGE_KEYS.signInStatus);
     sessionStorage.removeItem('isLoggedIn');
     window.location.href = 'index.html';
+}
+
+async function siteSignOutAction() {
+    // TODO:
+    // if (!navigator.onLine) {
+    //     // Store update request for later sync
+    //     saveUpdateRequest(formId, locationHistoryString);
+    //     updateStatus("Offline: Location history update saved for later sync.");
+    //     return;
+    // }
+
+    try {
+        const formId = localStorage.getItem('current_site_sign_in_tracking_form_id')
+
+        const updateData = {
+            formId,
+            action: "site_sign_out",
+        };
+
+        const scriptURL = `https://script.google.com/macros/s/AKfycbwf0KLSJAaYuiERLOTqvt5463rRAHXRMluIV7nmH53liOkEqcb7wGCOFdZEPQX-Z60ImQ/exec`;
+        const response = await fetch(scriptURL, {
+            method: "POST",
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(updateData),
+        });
+
+        if (!response.ok) {
+            throw new Error("Network response was not ok");
+        }
+    } catch (error) {
+        console.error("Update error:", error);
+        // Store update request for later sync
+        saveUpdateRequest(formId, locationHistoryString);
+        updateStatus("Error updating location history. Will retry when online.");
+    }
+}
+
+async function siteSignOut() {
+    await siteSignOutAction()
+    localStorage.removeItem('site_sign_in_location_histories');
+    localStorage.removeItem('current_site_sign_in_tracking_form_id');
+    location.reload()
 }
 
 async function syncAllSubmissions() {
@@ -183,18 +225,21 @@ async function checkAndUpdateSignInStatus(forceCheck = false) {
 async function updateFormAccessibility() {
     const hasSignedIn = await checkAndUpdateSignInStatus(true);
     const signInButton = document.getElementById("signInButton")
+    const signOutButton = document.getElementById("signOutButton")
     const deerCullSubmissionsButton = document.getElementById("deerCullSubmissionsButton")
     const observationsButton = document.getElementById("observationsButton")
     const statusTextObject = document.getElementById("status")
     const siteSignInStatus = document.getElementById("siteSignInStatus")
-    
+
     siteSignInStatus.innerText = hasSignedIn ? "Done" : "Not Done"
     if (!hasSignedIn) {
         statusTextObject.innerText = "Complete the site sign in"
         if (signInButton) signInButton.removeAttribute("disabled")
         if (deerCullSubmissionsButton) deerCullSubmissionsButton.setAttribute("disabled", true)
         if (observationsButton) observationsButton.setAttribute("disabled", true)
+        if (signOutButton) signOutButton.setAttribute("disabled", true)
     } else {
+        if (signOutButton) signOutButton.removeAttribute("disabled")
         if (signInButton) signInButton.setAttribute("disabled", true)
         statusTextObject.innerText = ""
         if (deerCullSubmissionsButton) deerCullSubmissionsButton.removeAttribute("disabled")
@@ -272,7 +317,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     function updateStatus(message) {
         statusDisplay.textContent = message;
-        localStorage.setItem("observations_latestStatus", message); 
+        localStorage.setItem("observations_latestStatus", message);
     }
 
     let locationTrackingInterval = null;
@@ -332,7 +377,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Function to save update request for later sync
     function saveUpdateRequest(formId, locationHistoryString) {
-        const pendingUpdates = JSON.parse(localStorage.getItem("observations_pending_updates") || "[]");
+        const pendingUpdates = JSON.parse(localStorage.getItem("site_sign_in_pending_updates") || "[]");
 
         // Check if update for this form already exists
         const existingIndex = pendingUpdates.findIndex(update => update.formId === formId);
@@ -348,20 +393,20 @@ document.addEventListener('DOMContentLoaded', async function () {
             });
         }
 
-        localStorage.setItem("observations_pending_updates", JSON.stringify(pendingUpdates));
+        localStorage.setItem("site_sign_in_pending_updates", JSON.stringify(pendingUpdates));
     }
 
     // Function to remove pending update
     function removePendingUpdate(formId) {
-        const pendingUpdates = JSON.parse(localStorage.getItem("observations_pending_updates") || "[]");
+        const pendingUpdates = JSON.parse(localStorage.getItem("site_sign_in_pending_updates") || "[]");
         const filteredUpdates = pendingUpdates.filter(update => update.formId !== formId);
-        localStorage.setItem("observations_pending_updates", JSON.stringify(filteredUpdates));
+        localStorage.setItem("site_sign_in_pending_updates", JSON.stringify(filteredUpdates));
     }
 
     // Function to send update to Google Sheet
     async function sendUpdateToGoogleSheet(data) {
         data.action = "site_sign_in_location_update"
-        const scriptURL = `https://script.google.com/macros/s/AKfycbxP-mW-Wup7w9DckzHEE8vsHcmXemDvAEtlHNO3VlNbTWluVMKJzVT7L8QfWegnXmi-_Q/exec`;
+        const scriptURL = `https://script.google.com/macros/s/AKfycbwf0KLSJAaYuiERLOTqvt5463rRAHXRMluIV7nmH53liOkEqcb7wGCOFdZEPQX-Z60ImQ/exec`;
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -377,7 +422,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Function to sync all pending location updates
     async function syncPendingLocationUpdates() {
-        const pendingUpdates = JSON.parse(localStorage.getItem("observations_pending_updates") || "[]");
+        const pendingUpdates = JSON.parse(localStorage.getItem("site_sign_in_pending_updates") || "[]");
         if (pendingUpdates.length === 0) {
             return;
         }
@@ -408,10 +453,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
 
         if (failedUpdates.length > 0) {
-            localStorage.setItem("observations_pending_updates", JSON.stringify(failedUpdates));
+            localStorage.setItem("site_sign_in_pending_updates", JSON.stringify(failedUpdates));
             updateStatus(`${pendingUpdates.length - failedUpdates.length} updates synced, ${failedUpdates.length} failed.`);
         } else {
-            localStorage.removeItem("observations_pending_updates");
+            localStorage.removeItem("site_sign_in_pending_updates");
             updateStatus("All location updates synced successfully.");
         }
     }

@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to save update request for later sync
     function saveUpdateRequest(formId, locationHistoryString) {
-        const pendingUpdates = JSON.parse(localStorage.getItem("observations_pending_updates") || "[]");
+        const pendingUpdates = JSON.parse(localStorage.getItem("site_sign_in_pending_updates") || "[]");
 
         // Check if update for this form already exists
         const existingIndex = pendingUpdates.findIndex(update => update.formId === formId);
@@ -107,20 +107,20 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
-        localStorage.setItem("observations_pending_updates", JSON.stringify(pendingUpdates));
+        localStorage.setItem("site_sign_in_pending_updates", JSON.stringify(pendingUpdates));
     }
 
     // Function to remove pending update
     function removePendingUpdate(formId) {
-        const pendingUpdates = JSON.parse(localStorage.getItem("observations_pending_updates") || "[]");
+        const pendingUpdates = JSON.parse(localStorage.getItem("site_sign_in_pending_updates") || "[]");
         const filteredUpdates = pendingUpdates.filter(update => update.formId !== formId);
-        localStorage.setItem("observations_pending_updates", JSON.stringify(filteredUpdates));
+        localStorage.setItem("site_sign_in_pending_updates", JSON.stringify(filteredUpdates));
     }
 
     // Function to send update to Google Sheet
     async function sendUpdateToGoogleSheet(data) {
         data.action = "site_sign_in_location_update"
-        const scriptURL = `https://script.google.com/macros/s/AKfycbxP-mW-Wup7w9DckzHEE8vsHcmXemDvAEtlHNO3VlNbTWluVMKJzVT7L8QfWegnXmi-_Q/exec`;
+        const scriptURL = `https://script.google.com/macros/s/AKfycbwf0KLSJAaYuiERLOTqvt5463rRAHXRMluIV7nmH53liOkEqcb7wGCOFdZEPQX-Z60ImQ/exec`;
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -136,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Function to sync all pending location updates
     async function syncPendingLocationUpdates() {
-        const pendingUpdates = JSON.parse(localStorage.getItem("observations_pending_updates") || "[]");
+        const pendingUpdates = JSON.parse(localStorage.getItem("site_sign_in_pending_updates") || "[]");
         if (pendingUpdates.length === 0) {
             return;
         }
@@ -167,10 +167,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (failedUpdates.length > 0) {
-            localStorage.setItem("observations_pending_updates", JSON.stringify(failedUpdates));
+            localStorage.setItem("site_sign_in_pending_updates", JSON.stringify(failedUpdates));
             updateStatus(`${pendingUpdates.length - failedUpdates.length} updates synced, ${failedUpdates.length} failed.`);
         } else {
-            localStorage.removeItem("observations_pending_updates");
+            localStorage.removeItem("site_sign_in_pending_updates");
             updateStatus("All location updates synced successfully.");
         }
     }
@@ -557,7 +557,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function sendToGoogleSheet(data) {
         data.action = "observation"
-        const scriptURL = `https://script.google.com/macros/s/AKfycbxP-mW-Wup7w9DckzHEE8vsHcmXemDvAEtlHNO3VlNbTWluVMKJzVT7L8QfWegnXmi-_Q/exec`;
+        const scriptURL = `https://script.google.com/macros/s/AKfycbwf0KLSJAaYuiERLOTqvt5463rRAHXRMluIV7nmH53liOkEqcb7wGCOFdZEPQX-Z60ImQ/exec`;
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -653,7 +653,7 @@ function checkLoginStatus() {
     }
 }
 
-const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbxP-mW-Wup7w9DckzHEE8vsHcmXemDvAEtlHNO3VlNbTWluVMKJzVT7L8QfWegnXmi-_Q/exec";
+const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbwf0KLSJAaYuiERLOTqvt5463rRAHXRMluIV7nmH53liOkEqcb7wGCOFdZEPQX-Z60ImQ/exec";
 const localStorageKey = "observationsFormData";
 
 // document.addEventListener("DOMContentLoaded", function () {
