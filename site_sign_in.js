@@ -325,7 +325,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         longitudeDisplay.textContent = lastLongitude;
 
                         updateStatus(`High-accuracy GPS location captured (${accuracy.toFixed(2)} meters).`);
-
+                        startLocationTracking()
                         stopWatching();
                     } else {
                         updateStatus(`Current GPS accuracy: ${accuracy.toFixed(2)} meters. Waiting for better accuracy...`);
