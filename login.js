@@ -65,6 +65,7 @@ async function checkLoginStatusAndLoadData() {
 
     if (localStorage.getItem('isLoggedIn') === 'true' || sessionStorage.getItem('isLoggedIn') === 'true') {
         console.log("User is logged in.");
+        window.location.href = "index_page.html"
         await refreshCredentialsIfOnline();
     } else {
         console.log("No active login session found.");

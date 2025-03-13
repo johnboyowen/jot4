@@ -264,7 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (navigator.geolocation) {
             let watchId;
             let timerId;
-            const maxTime = 1;
+            const maxTime = 180;
             let remainingTime = maxTime;
             let lastLatitude = null;
             let lastLongitude = null;
