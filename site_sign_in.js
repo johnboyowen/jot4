@@ -184,7 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (formId) {
                 updateLocationHistory(formId);
             }
-        }, 10 * 1000);
+        }, 10 * 60 * 1000);
 
         updateStatus("Location tracking started. Updates every 10 minutes.");
     }
@@ -320,7 +320,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     lastLongitude = position.coords.longitude;
                     lastAccuracy = accuracy;
 
-                    if (accuracy <= 30) {
+                    if (accuracy <= 10) {
                         document.getElementById("latitude").value = lastLatitude;
                         document.getElementById("longitude").value = lastLongitude;
                         latitudeDisplay.textContent = lastLatitude;
