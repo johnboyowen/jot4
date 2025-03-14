@@ -38,8 +38,15 @@ if ('serviceWorker' in navigator && 'PeriodicSyncManager' in window) {
 function logout() {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('username');
+    sessionStorage.removeItem('username');
     localStorage.removeItem(STORAGE_KEYS.signInStatus);
-    sessionStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('site_sign_in_latestStatus');
+    localStorage.removeItem('site_sign_in_location_histories');
+    localStorage.removeItem('site_sign_in_pending_updates');
+    localStorage.removeItem('current_site_sign_in_tracking_form_id');
+    localStorage.removeItem('site_sign_in_responses');
+    localStorage.removeItem('observations_latestStatus');
+    localStorage.removeItem('site_sign_in_data');
     window.location.href = 'index.html';
 }
 

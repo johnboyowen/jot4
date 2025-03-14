@@ -309,6 +309,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }, 1000);
 
+            gpsButton.setAttribute("disabled", true)
+
             updateStatus("Acquiring high-accuracy GPS location...");
 
             watchId = navigator.geolocation.watchPosition(
@@ -318,7 +320,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     lastLongitude = position.coords.longitude;
                     lastAccuracy = accuracy;
 
-                    if (accuracy <= 10) {
+                    if (accuracy <= 30) {
                         document.getElementById("latitude").value = lastLatitude;
                         document.getElementById("longitude").value = lastLongitude;
                         latitudeDisplay.textContent = lastLatitude;
@@ -326,6 +328,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         updateStatus(`High-accuracy GPS location captured (${accuracy.toFixed(2)} meters).`);
                         startLocationTracking()
+                        gpsButton.removeAttribute("disabled")
                         stopWatching();
                     } else {
                         updateStatus(`Current GPS accuracy: ${accuracy.toFixed(2)} meters. Waiting for better accuracy...`);
@@ -550,6 +553,7 @@ document.addEventListener("DOMContentLoaded", () => {
             updateStatus("Some data could not be synced.");
         } else {
             localStorage.removeItem("site_sign_in_responses");
+            window.location.href = "index_page.html"
         }
 
         updatePendingCount();
