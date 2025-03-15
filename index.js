@@ -482,7 +482,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             if (formId) {
                 updateLocationHistory(formId);
             }
-        }, 10 * 1000);
+        }, 10 * 60 * 1000);
 
         updateStatus("Location tracking started. Updates every 10 minutes.");
     }
