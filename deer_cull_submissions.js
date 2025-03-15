@@ -21,7 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("deer_cull_latestStatus", message); // Store latest status message specific to Deer Cull
     }
 
-    
     let locationTrackingInterval = null;
     const existingSiteLOcationHistory = localStorage.getItem("site_sign_in_location_histories")
     let locationHistory = existingSiteLOcationHistory ? JSON.parse(existingSiteLOcationHistory) : [];
@@ -301,7 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     lastLongitude = position.coords.longitude;
                     lastAccuracy = accuracy;
 
-                    if (accuracy <= 10) {
+                    if (accuracy <= 30) {
                         document.getElementById("latitude").value = lastLatitude;
                         document.getElementById("longitude").value = lastLongitude;
                         latitudeDisplay.textContent = lastLatitude;
@@ -343,6 +342,110 @@ document.addEventListener("DOMContentLoaded", () => {
                 return "An unknown error occurred.";
         }
     }
+
+    const DB_NAME = 'DeerCullDB';
+    const STORE_NAME = 'photos';
+    let db;
+
+    // Initialize IndexedDB
+    function initIndexedDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, 1);
+
+            request.onerror = (event) => {
+                console.error("IndexedDB error:", event.target.error);
+                reject(event.target.error);
+            };
+
+            request.onsuccess = (event) => {
+                db = event.target.result;
+                resolve(db);
+            };
+
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                }
+            };
+        });
+    }
+
+    // Save photo to IndexedDB
+    function savePhotoToIndexedDB(base64Data) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+
+            const photoObj = {
+                data: base64Data,
+                timestamp: new Date().getTime()
+            };
+
+            const request = store.add(photoObj);
+
+            request.onsuccess = (event) => {
+                resolve(event.target.result); // Returns the generated ID
+            };
+
+            request.onerror = (event) => {
+                console.error("Error saving photo to IndexedDB:", event.target.error);
+                reject(event.target.error);
+            };
+        });
+    }
+
+    // Get photo from IndexedDB by ID
+    function getPhotoFromIndexedDB(id) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORE_NAME], 'readonly');
+            const store = transaction.objectStore(STORE_NAME);
+
+            const request = store.get(id);
+
+            request.onsuccess = (event) => {
+                if (request.result) {
+                    resolve(request.result.data);
+                } else {
+                    reject(new Error('Photo not found'));
+                }
+            };
+
+            request.onerror = (event) => {
+                console.error("Error retrieving photo from IndexedDB:", event.target.error);
+                reject(event.target.error);
+            };
+        });
+    }
+
+    // Delete photo from IndexedDB by ID
+    function deletePhotoFromIndexedDB(id) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+
+            const request = store.delete(id);
+
+            request.onsuccess = () => {
+                resolve();
+            };
+
+            request.onerror = (event) => {
+                console.error("Error deleting photo from IndexedDB:", event.target.error);
+                reject(event.target.error);
+            };
+        });
+    }
+
+
+    initIndexedDB()
+        .then(() => {
+            updateStatus("Storage system initialized.");
+        })
+        .catch(error => {
+            console.error("Failed to initialize IndexedDB:", error);
+            updateStatus("Failed to initialize storage system. Using fallback.");
+        });
 
     function resizeImage(file) {
         return new Promise((resolve) => {
@@ -388,12 +491,16 @@ document.addEventListener("DOMContentLoaded", () => {
             if (file && file.size <= MAX_FILE_SIZE) {
                 try {
                     const resizedPhoto = await resizeImage(file);
-                    photoData.push(resizedPhoto);
+
+                    // Save to IndexedDB instead of keeping in memory
+                    const photoId = await savePhotoToIndexedDB(resizedPhoto);
+                    photoData.push(photoId); // Store the ID reference instead of actual data
 
                     const imgContainer = document.createElement("div");
                     imgContainer.style.position = "relative";
                     imgContainer.style.display = "inline-block";
                     imgContainer.style.marginRight = "10px";
+                    imgContainer.dataset.photoId = photoId; // Store the photo ID in the DOM element
 
                     const img = document.createElement("img");
                     img.src = `data:image/jpeg;base64,${resizedPhoto}`;
@@ -413,9 +520,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     deleteButton.style.padding = "1px 3px";
                     deleteButton.style.borderRadius = "3px";
 
-                    deleteButton.addEventListener("click", () => {
-                        const index = photoData.indexOf(resizedPhoto);
-                        if (index !== -1) photoData.splice(index, 1);
+                    deleteButton.addEventListener("click", async () => {
+                        const photoId = parseInt(imgContainer.dataset.photoId);
+                        const index = photoData.indexOf(photoId);
+                        if (index !== -1) {
+                            photoData.splice(index, 1);
+                            // Delete from IndexedDB
+                            try {
+                                await deletePhotoFromIndexedDB(photoId);
+                            } catch (error) {
+                                console.error("Error deleting photo:", error);
+                            }
+                        }
                         photoPreview.removeChild(imgContainer);
                     });
 
@@ -423,6 +539,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     photoPreview.appendChild(imgContainer);
                     updateStatus("Photo added successfully.");
                 } catch (error) {
+                    console.error("Error processing photo:", error);
                     alert("Error processing photo. Please try again.");
                 }
             } else {
@@ -446,9 +563,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = Object.fromEntries(formData.entries());
 
         data.timestamp = new Date().toLocaleString();
-        data.photos = JSON.stringify(photoData);
 
-        if (locationHistory.length > 0) {
+        // Don't store photo data directly in the form data
+        // Instead, store the photo IDs and retrieve them when needed
+        data.photoIds = JSON.stringify(photoData);
+
+        if (typeof locationHistory !== 'undefined' && locationHistory.length > 0) {
             // Format: "lat1,lon1;lat2,lon2;lat3,lon3"
             data.locationHistory = locationHistory.map(loc =>
                 `${loc.latitude},${loc.longitude}`
@@ -469,6 +589,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Reset the form after successful submission
             form.reset();
+
+            // Clean up photos from IndexedDB after successful submission
+            await Promise.all(photoData.map(id => deletePhotoFromIndexedDB(id)));
+
             photoData.length = 0;
             photoPreview.innerHTML = "";
             document.getElementById("latitude").value = "";
@@ -478,11 +602,18 @@ document.addEventListener("DOMContentLoaded", () => {
             updateStatus("Form submitted successfully.");
 
             // Reset green-highlighted dropdowns
-            resetDropdowns();
+            if (typeof resetDropdowns === 'function') {
+                resetDropdowns();
+            }
 
             updatePendingCount();
         } catch (error) {
             console.error("Submission error:", error);
+            if (String(error)?.includes("exceeded the quota")) {
+                alert("Storage quota limit reached. Please try again later.");
+                updateStatus("Storage quota limit reached.");
+                return;
+            }
 
             if (navigator.onLine) {
                 alert("There was an issue with the server. Please try again.");
@@ -505,17 +636,48 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function saveAndSync(data) {
-        saveOffline(data);
-        updateStatus("Response saved offline.");
-        if (navigator.onLine) {
-            syncData();
-        }
+        return new Promise(async (resolve, reject) => {
+            try {
+                await saveOffline(data);
+                updateStatus("Response saved offline.");
+                if (navigator.onLine) {
+                    await syncData();
+                }
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        });
     }
 
-    function saveOffline(data) {
+    async function saveOffline(data) {
         const responses = JSON.parse(localStorage.getItem("deer_cull_responses") || "[]");
+
+        // For each submission, get the actual photo data from IndexedDB
+        // if (data.photoIds) {
+        //     const photoIds = JSON.parse(data.photoIds);
+        //     const photoDataArray = [];
+
+        //     // Get all photos from IndexedDB based on their IDs
+        //     for (const id of photoIds) {
+        //         try {
+        //             const photoData = await getPhotoFromIndexedDB(id);
+        //             photoDataArray.push(photoData);
+        //         } catch (error) {
+        //             console.error("Error retrieving photo from IndexedDB:", error);
+        //         }
+        //     }
+
+        //     // Store the actual photo data in the response
+        //     data.photos = JSON.stringify(photoDataArray);
+
+        //     // Remove the temporary photoIds field
+        //     delete data.photoIds;
+        // }
+
         responses.push(data);
         localStorage.setItem("deer_cull_responses", JSON.stringify(responses));
+        updatePendingCount();
     }
 
     async function syncData() {
@@ -526,13 +688,35 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         let unsyncedResponses = [];
-        const username = localStorage.getItem("username")
-        const signIn = JSON.parse(localStorage.getItem("site_sign_in_status"))
+        const username = localStorage.getItem("username");
+        const signIn = JSON.parse(localStorage.getItem("site_sign_in_status") || "{}");
 
         for (const response of responses) {
             try {
-                response.username = username
-                response.name = signIn.propertyName
+                response.username = username;
+                response.name = signIn.propertyName;
+                // For each submission, get the actual photo data from IndexedDB
+                if (response.photoIds) {
+                    const photoIds = JSON.parse(response.photoIds);
+                    const photoDataArray = [];
+
+                    // Get all photos from IndexedDB based on their IDs
+                    for (const id of photoIds) {
+                        try {
+                            const photoData = await getPhotoFromIndexedDB(id);
+                            photoDataArray.push(photoData);
+                        } catch (error) {
+                            console.error("Error retrieving photo from IndexedDB:", error);
+                        }
+                    }
+
+                    // Store the actual photo data in the response
+                    response.photos = JSON.stringify(photoDataArray);
+
+                    // Remove the temporary photoIds field
+                    delete response.photoIds;
+                }
+
                 await sendToGoogleSheet(response);
                 updateStatus("Data synced successfully.");
             } catch (error) {
@@ -554,7 +738,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function sendToGoogleSheet(data) {
-        data.action = "deer_cull"
+        data.action = "deer_cull";
         const scriptURL = "https://script.google.com/macros/s/AKfycbwKyQvtBKHDQWt8LvBabNjEltKlD547FwhWuvWweOYyjjwSNWnRWsYdgcOXW7nEPVSuCA/exec";
         const response = await fetch(scriptURL, {
             method: "POST",
@@ -633,41 +817,99 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-
 async function showStorageUsage() {
     try {
-        let totalUsageBytes = 0;
-
-        // Calculate LocalStorage usage in bytes
+        // Part 1: Calculate LocalStorage usage
+        let localStorageUsageBytes = 0;
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             const value = localStorage.getItem(key);
-            totalUsageBytes += key.length + value.length;
+            localStorageUsageBytes += (key.length + value.length) * 2; // UTF-16 uses 2 bytes per character
         }
 
-        // Convert to MB
-        const usedMB = (totalUsageBytes / (1024 * 1024)).toFixed(2);
-        const maxQuotaMB = 5; // Typical LocalStorage quota is 5 MB
-        const usedPercentage = ((usedMB / maxQuotaMB) * 100).toFixed(2);
+        // Convert LocalStorage usage to MB
+        const localStorageUsedMB = (localStorageUsageBytes / (1024 * 1024)).toFixed(2);
+        const localStorageMaxQuotaMB = 5; // Typical LocalStorage quota is 5 MB
+        const localStorageUsedPercentage = ((localStorageUsedMB / localStorageMaxQuotaMB) * 100).toFixed(2);
 
-        // Update the UI
+        // Part 2: Get IndexedDB usage via Storage API
+        let indexedDBInfo = {
+            usedMB: "Unknown",
+            totalMB: "Unknown",
+            usedPercentage: 0,
+            available: "Unknown"
+        };
+
+        if (navigator.storage && navigator.storage.estimate) {
+            const estimate = await navigator.storage.estimate();
+            const totalSpace = estimate.quota; // Total space available (in bytes)
+            const usedSpace = estimate.usage; // Space being used (in bytes)
+            const availableSpace = totalSpace - usedSpace; // Available space (in bytes)
+
+            // Convert to more readable format (MB)
+            indexedDBInfo = {
+                usedMB: (usedSpace / (1024 * 1024)).toFixed(2),
+                totalMB: (totalSpace / (1024 * 1024)).toFixed(2),
+                usedPercentage: ((usedSpace / totalSpace) * 100).toFixed(2),
+                available: (availableSpace / (1024 * 1024)).toFixed(2)
+            };
+        }
+
+        // Part 3: Update the UI with both storage types
         const storageInfo = document.getElementById('storage-info');
         const progressBar = document.getElementById('storage-progress');
 
         if (storageInfo && progressBar) {
+            // Calculate combined usage for progress bar (weighted more toward IndexedDB since it's larger)
+            const combinedPercentage = indexedDBInfo.usedPercentage !== 0 ?
+                indexedDBInfo.usedPercentage : localStorageUsedPercentage;
+
+            // Set progress bar color based on usage
+            let barColor = "#4CAF50"; // Green for < 70%
+            if (combinedPercentage > 90) {
+                barColor = "#F44336"; // Red for > 90%
+            } else if (combinedPercentage > 70) {
+                barColor = "#FF9800"; // Yellow/Orange for > 70%
+            }
+
+            if (progressBar.style) {
+                progressBar.style.accentColor = barColor;
+            }
+
             storageInfo.innerHTML = `
-                <p><strong>LocalStorage Used:</strong> ${usedMB} MB</p>
-                <p><strong>LocalStorage Quota:</strong> ${maxQuotaMB} MB</p>
-                <p><strong>Used:</strong> ${usedPercentage}%</p>
+                <div class="storage-summary">
+                    <h3>Storage Usage</h3>
+                    
+                    <div class="storage-section">
+                        <h4>LocalStorage (Limited to text data only)</h4>
+                        <p><strong>Used:</strong> ${localStorageUsedMB} MB of ${localStorageMaxQuotaMB} MB (${localStorageUsedPercentage}%)</p>
+                    </div>
+                    
+                    <div class="storage-section">
+                        <h4>IndexedDB (For images and larger data)</h4>
+                        <p><strong>Used:</strong> ${indexedDBInfo.usedMB} MB of ${indexedDBInfo.totalMB} MB (${indexedDBInfo.usedPercentage}%)</p>
+                        <p><strong>Available:</strong> ${indexedDBInfo.available} MB</p>
+                    </div>
+                    
+                    <div class="storage-warning" ${combinedPercentage > 85 ? 'style="color: #F44336; font-weight: bold;"' : 'style="display: none;"'}>
+                        Warning: Storage space is running low! You may need to sync your data soon.
+                    </div>
+                </div>
             `;
+
             progressBar.max = 100;
-            progressBar.value = usedPercentage;
+            progressBar.value = combinedPercentage;
         }
     } catch (error) {
-        console.error('Error calculating LocalStorage usage:', error);
+        console.error('Error calculating storage usage:', error);
         const storageInfo = document.getElementById('storage-info');
         if (storageInfo) {
-            storageInfo.innerHTML = `<p>Error fetching LocalStorage usage info.</p>`;
+            storageInfo.innerHTML = `
+                <div class="storage-error">
+                    <p>Error fetching storage usage information.</p>
+                    <p>Error details: ${error.message}</p>
+                </div>
+            `;
         }
     }
 }
