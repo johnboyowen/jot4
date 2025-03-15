@@ -300,7 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     lastLongitude = position.coords.longitude;
                     lastAccuracy = accuracy;
 
-                    if (accuracy <= 30) {
+                    if (accuracy <= 10) {
                         document.getElementById("latitude").value = lastLatitude;
                         document.getElementById("longitude").value = lastLongitude;
                         latitudeDisplay.textContent = lastLatitude;
