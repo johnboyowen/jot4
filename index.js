@@ -8,11 +8,11 @@ const STORAGE_KEYS = {
 
 // Script URLs for API endpoints
 const SCRIPT_URLS = {
-    siteSignIn: "https://script.google.com/macros/s/AKfycbwmL65HvLsb5QRzwr2eRXNopNl1M583cIoydDe7eo2JIdaqiilIOjAzBCOqCKlykioV-A/exec",
-    deerCull: "https://script.google.com/macros/s/AKfycbwmL65HvLsb5QRzwr2eRXNopNl1M583cIoydDe7eo2JIdaqiilIOjAzBCOqCKlykioV-A/exec",
-    observations: "https://script.google.com/macros/s/AKfycbwmL65HvLsb5QRzwr2eRXNopNl1M583cIoydDe7eo2JIdaqiilIOjAzBCOqCKlykioV-A/exec",
+    siteSignIn: "https://script.google.com/macros/s/AKfycbwF21dLgvO7OQ9kv5DemOKwPqVsykfzKh3aT4nJPVwf6NfgCloGUuUlo3jYvc8ni4UqMg/exec",
+    deerCull: "https://script.google.com/macros/s/AKfycbwF21dLgvO7OQ9kv5DemOKwPqVsykfzKh3aT4nJPVwf6NfgCloGUuUlo3jYvc8ni4UqMg/exec",
+    observations: "https://script.google.com/macros/s/AKfycbwF21dLgvO7OQ9kv5DemOKwPqVsykfzKh3aT4nJPVwf6NfgCloGUuUlo3jYvc8ni4UqMg/exec",
     // Use the same URL as siteSignIn since we've updated that script to handle both functions
-    signInStatus: "https://script.google.com/macros/s/AKfycbwmL65HvLsb5QRzwr2eRXNopNl1M583cIoydDe7eo2JIdaqiilIOjAzBCOqCKlykioV-A/exec?action=checkSignIn"
+    signInStatus: "https://script.google.com/macros/s/AKfycbwF21dLgvO7OQ9kv5DemOKwPqVsykfzKh3aT4nJPVwf6NfgCloGUuUlo3jYvc8ni4UqMg/exec?action=checkSignIn"
 };
 
 // Register service worker for periodic sync (if supported)
@@ -67,7 +67,7 @@ async function siteSignOutAction() {
             action: "site_sign_out",
         };
 
-        const scriptURL = `https://script.google.com/macros/s/AKfycbwmL65HvLsb5QRzwr2eRXNopNl1M583cIoydDe7eo2JIdaqiilIOjAzBCOqCKlykioV-A/exec`;
+        const scriptURL = `https://script.google.com/macros/s/AKfycbwF21dLgvO7OQ9kv5DemOKwPqVsykfzKh3aT4nJPVwf6NfgCloGUuUlo3jYvc8ni4UqMg/exec`;
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -413,7 +413,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Function to send update to Google Sheet
     async function sendUpdateToGoogleSheet(data) {
         data.action = "site_sign_in_location_update"
-        const scriptURL = `https://script.google.com/macros/s/AKfycbwmL65HvLsb5QRzwr2eRXNopNl1M583cIoydDe7eo2JIdaqiilIOjAzBCOqCKlykioV-A/exec`;
+        const scriptURL = `https://script.google.com/macros/s/AKfycbwF21dLgvO7OQ9kv5DemOKwPqVsykfzKh3aT4nJPVwf6NfgCloGUuUlo3jYvc8ni4UqMg/exec`;
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

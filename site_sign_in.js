@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Function to send update to Google Sheet
     async function sendUpdateToGoogleSheet(data) {
         data.action = "site_sign_in_location_update"
-        const scriptURL = `https://script.google.com/macros/s/AKfycbwmL65HvLsb5QRzwr2eRXNopNl1M583cIoydDe7eo2JIdaqiilIOjAzBCOqCKlykioV-A/exec`;
+        const scriptURL = `https://script.google.com/macros/s/AKfycbwF21dLgvO7OQ9kv5DemOKwPqVsykfzKh3aT4nJPVwf6NfgCloGUuUlo3jYvc8ni4UqMg/exec`;
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -265,7 +265,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (navigator.geolocation) {
             let watchId;
             let timerId;
-            const maxTime = 180;
+            const maxTime = 1;
             let remainingTime = maxTime;
             let lastLatitude = null;
             let lastLongitude = null;
@@ -473,8 +473,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         data.timestamp = new Date().toLocaleString();
         data.photos = JSON.stringify(photoData);
-        data.propellerPhoto = JSON.stringify(propellerPhotoData);
-        data.auxPropellerPhoto = JSON.stringify(auxPropellerPhotoData);
+        data.propellerPhoto = propellerPhotoData;
+        data.auxPropellerPhoto = auxPropellerPhotoData;
 
         if (locationHistory.length > 0) {
             // Format: "lat1,lon1;lat2,lon2;lat3,lon3"
@@ -566,7 +566,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function sendToGoogleSheet(data) {
         data.action = "signin"
-        const scriptURL = "https://script.google.com/macros/s/AKfycbwmL65HvLsb5QRzwr2eRXNopNl1M583cIoydDe7eo2JIdaqiilIOjAzBCOqCKlykioV-A/exec";
+        const scriptURL = "https://script.google.com/macros/s/AKfycbwF21dLgvO7OQ9kv5DemOKwPqVsykfzKh3aT4nJPVwf6NfgCloGUuUlo3jYvc8ni4UqMg/exec";
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -1687,7 +1687,7 @@ function checkLoginStatus() {
     }
 }
 
-const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbwmL65HvLsb5QRzwr2eRXNopNl1M583cIoydDe7eo2JIdaqiilIOjAzBCOqCKlykioV-A/exec?action=dropdowns";
+const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbwF21dLgvO7OQ9kv5DemOKwPqVsykfzKh3aT4nJPVwf6NfgCloGUuUlo3jYvc8ni4UqMg/exec?action=dropdowns";
 const localStorageKey = STORAGE_KEYS.signInData;
 
 document.addEventListener("DOMContentLoaded", function () {
