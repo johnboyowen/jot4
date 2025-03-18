@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Function to send update to Google Sheet
     async function sendUpdateToGoogleSheet(data) {
         data.action = "site_sign_in_location_update"
-        const scriptURL = `https://script.google.com/macros/s/AKfycbxnV1V18XsCZHuqcHJGFKpGiPx8Qymlvlh73pVaD0Nx9UCshH8cQATn_qK_-Gt_7_C7VA/exec`;
+        const scriptURL = `https://script.google.com/macros/s/AKfycbwmL65HvLsb5QRzwr2eRXNopNl1M583cIoydDe7eo2JIdaqiilIOjAzBCOqCKlykioV-A/exec`;
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -740,7 +740,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function sendToGoogleSheet(data) {
         data.action = "deer_cull";
-        const scriptURL = "https://script.google.com/macros/s/AKfycbxnV1V18XsCZHuqcHJGFKpGiPx8Qymlvlh73pVaD0Nx9UCshH8cQATn_qK_-Gt_7_C7VA/exec";
+        const scriptURL = "https://script.google.com/macros/s/AKfycbwmL65HvLsb5QRzwr2eRXNopNl1M583cIoydDe7eo2JIdaqiilIOjAzBCOqCKlykioV-A/exec";
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -951,7 +951,7 @@ function checkLoginStatus() {
     }
 }
 
-const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbxnV1V18XsCZHuqcHJGFKpGiPx8Qymlvlh73pVaD0Nx9UCshH8cQATn_qK_-Gt_7_C7VA/exec?action=dropdowns";
+const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbwmL65HvLsb5QRzwr2eRXNopNl1M583cIoydDe7eo2JIdaqiilIOjAzBCOqCKlykioV-A/exec?action=dropdowns";
 const localStorageKey = "deerCullFormData";
 
 document.addEventListener("DOMContentLoaded", function () {
