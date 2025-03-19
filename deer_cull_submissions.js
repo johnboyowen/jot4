@@ -577,15 +577,11 @@ document.addEventListener("DOMContentLoaded", () => {
             data.locationHistory = "";
         }
 
-        const formId = `form_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        data.formId = formId;
-
         updateStatus("Submitting form...");
 
         try {
             // Attempt to save and sync data
             await saveAndSync(data);
-            localStorage.setItem("current_site_sign_in_tracking_form_id", formId);
 
             // Reset the form after successful submission
             form.reset();
@@ -988,7 +984,6 @@ function populateForm(data) {
     const speciesSelect = document.getElementById("species");
     const carcassFateSelect = document.getElementById("carcassFate");
 
-    // nameSelect.innerHTML = generateOptions(data.leadContractors);
     landTypeSelect.innerHTML = generateOptions(data.landTypes);
     maturitySelect.innerHTML = generateOptions(data.maturity);
     speciesSelect.innerHTML = generateOptions(data.species);

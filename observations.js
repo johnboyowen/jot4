@@ -474,12 +474,8 @@ document.addEventListener("DOMContentLoaded", () => {
             data.locationHistory = "";
         }
 
-        const formId = `form_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        data.formId = formId;
-
         try {
             await saveAndSync(data);
-            localStorage.setItem("current_site_sign_in_tracking_form_id", formId);
             form.reset();
             photoData.length = 0;
             photoPreview.innerHTML = "";

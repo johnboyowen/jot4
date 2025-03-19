@@ -265,7 +265,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (navigator.geolocation) {
             let watchId;
             let timerId;
-            const maxTime = 180;
+            const maxTime = 1;
             let remainingTime = maxTime;
             let lastLatitude = null;
             let lastLongitude = null;
@@ -605,7 +605,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 entry.innerHTML = `<p><strong>Submission #${index + 1}</strong></p>
                                    <p>Property Name: ${data.propertyName}</p>
                                    <p>Number of Stalkers: ${data.numberOfStalkers}</p>
-                                   <p>Lead Contractor: ${data.leadContractor}</p>
                                    <p>Names of Additional Stalkers: ${data.additionalStalkers}</p>
                                    <p>JMT Approval: ${data.jmtApproval}</p>
                                    <p>Exemptions Granted: ${data.exemptions}</p>
@@ -1721,12 +1720,10 @@ function populateForm(data) {
     if (!data) return;
 
     const propertySelect = document.getElementById("propertyName");
-    const contractorSelect = document.getElementById("leadContractor");
     const stalkersSelect = document.getElementById("additionalStalkers");
     const exemptionsSelect = document.getElementById("exemptions");
 
     propertySelect.innerHTML = generateOptions(data.propertyNames);
-    contractorSelect.innerHTML = generateOptions(data.leadContractors);
     stalkersSelect.innerHTML = generateOptions(data.additionalStalkers, true);
     exemptionsSelect.innerHTML = generateOptions(data.exemptions);
 }
