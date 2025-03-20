@@ -605,6 +605,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 entry.innerHTML = `<p><strong>Submission #${index + 1}</strong></p>
                                    <p>Property Name: ${data.propertyName}</p>
                                    <p>Number of Stalkers: ${data.numberOfStalkers}</p>
+                                   <p>Lead Contractor: ${data.leadContractor}</p>
                                    <p>Names of Additional Stalkers: ${data.additionalStalkers}</p>
                                    <p>JMT Approval: ${data.jmtApproval}</p>
                                    <p>Exemptions Granted: ${data.exemptions}</p>
