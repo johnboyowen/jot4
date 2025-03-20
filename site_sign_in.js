@@ -1722,10 +1722,12 @@ function populateForm(data) {
     const propertySelect = document.getElementById("propertyName");
     const stalkersSelect = document.getElementById("additionalStalkers");
     const exemptionsSelect = document.getElementById("exemptions");
+    const contractorSelect = document.getElementById("leadContractor");
 
     propertySelect.innerHTML = generateOptions(data.propertyNames);
     stalkersSelect.innerHTML = generateOptions(data.additionalStalkers, true);
     exemptionsSelect.innerHTML = generateOptions(data.exemptions);
+    contractorSelect.innerHTML = generateOptions(data.leadContractors);
 }
 
 function generateOptions(options, isMultiple = false) {
