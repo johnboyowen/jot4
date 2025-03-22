@@ -362,6 +362,110 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    const DB_NAME = 'ObservationsDB';
+    const STORE_NAME = 'photos';
+    let db;
+
+    // Initialize IndexedDB
+    function initIndexedDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, 1);
+
+            request.onerror = (event) => {
+                console.error("IndexedDB error:", event.target.error);
+                reject(event.target.error);
+            };
+
+            request.onsuccess = (event) => {
+                db = event.target.result;
+                resolve(db);
+            };
+
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                }
+            };
+        });
+    }
+
+    // Save photo to IndexedDB
+    function savePhotoToIndexedDB(base64Data) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+
+            const photoObj = {
+                data: base64Data,
+                timestamp: new Date().getTime()
+            };
+
+            const request = store.add(photoObj);
+
+            request.onsuccess = (event) => {
+                resolve(event.target.result); // Returns the generated ID
+            };
+
+            request.onerror = (event) => {
+                console.error("Error saving photo to IndexedDB:", event.target.error);
+                reject(event.target.error);
+            };
+        });
+    }
+
+    // Get photo from IndexedDB by ID
+    function getPhotoFromIndexedDB(id) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORE_NAME], 'readonly');
+            const store = transaction.objectStore(STORE_NAME);
+
+            const request = store.get(id);
+
+            request.onsuccess = (event) => {
+                if (request.result) {
+                    resolve(request.result.data);
+                } else {
+                    reject(new Error('Photo not found'));
+                }
+            };
+
+            request.onerror = (event) => {
+                console.error("Error retrieving photo from IndexedDB:", event.target.error);
+                reject(event.target.error);
+            };
+        });
+    }
+
+    // Delete photo from IndexedDB by ID
+    function deletePhotoFromIndexedDB(id) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+
+            const request = store.delete(id);
+
+            request.onsuccess = () => {
+                resolve();
+            };
+
+            request.onerror = (event) => {
+                console.error("Error deleting photo from IndexedDB:", event.target.error);
+                reject(event.target.error);
+            };
+        });
+    }
+
+
+    initIndexedDB()
+        .then(() => {
+            updateStatus("Storage system initialized.");
+        })
+        .catch(error => {
+            console.error("Failed to initialize IndexedDB:", error);
+            updateStatus("Failed to initialize storage system. Using fallback.");
+        });
+
     function resizeImage(file) {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -406,12 +510,16 @@ document.addEventListener("DOMContentLoaded", () => {
             if (file && file.size <= MAX_FILE_SIZE) {
                 try {
                     const resizedPhoto = await resizeImage(file);
-                    photoData.push(resizedPhoto);
+
+                    // Save to IndexedDB instead of keeping in memory
+                    const photoId = await savePhotoToIndexedDB(resizedPhoto);
+                    photoData.push(photoId); // Store the ID reference instead of actual data
 
                     const imgContainer = document.createElement("div");
                     imgContainer.style.position = "relative";
                     imgContainer.style.display = "inline-block";
                     imgContainer.style.marginRight = "10px";
+                    imgContainer.dataset.photoId = photoId; // Store the photo ID in the DOM element
 
                     const img = document.createElement("img");
                     img.src = `data:image/jpeg;base64,${resizedPhoto}`;
@@ -431,9 +539,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     deleteButton.style.padding = "1px 3px";
                     deleteButton.style.borderRadius = "3px";
 
-                    deleteButton.addEventListener("click", () => {
-                        const index = photoData.indexOf(resizedPhoto);
-                        if (index !== -1) photoData.splice(index, 1);
+                    deleteButton.addEventListener("click", async () => {
+                        const photoId = parseInt(imgContainer.dataset.photoId);
+                        const index = photoData.indexOf(photoId);
+                        if (index !== -1) {
+                            photoData.splice(index, 1);
+                            // Delete from IndexedDB
+                            try {
+                                await deletePhotoFromIndexedDB(photoId);
+                            } catch (error) {
+                                console.error("Error deleting photo:", error);
+                            }
+                        }
                         photoPreview.removeChild(imgContainer);
                     });
 
@@ -441,6 +558,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     photoPreview.appendChild(imgContainer);
                     updateStatus("Photo added successfully.");
                 } catch (error) {
+                    console.error("Error processing photo:", error);
                     alert("Error processing photo. Please try again.");
                 }
             } else {
@@ -463,9 +581,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = Object.fromEntries(formData.entries());
 
         data.timestamp = new Date().toLocaleString();
-        data.photos = JSON.stringify(photoData);
+        // data.photos = JSON.stringify(photoData);
+        data.photoIds = JSON.stringify(photoData);
 
-        if (locationHistory.length > 0) {
+        if (typeof locationHistory !== 'undefined' && locationHistory.length > 0) {
             // Format: "lat1,lon1;lat2,lon2;lat3,lon3"
             data.locationHistory = locationHistory.map(loc =>
                 `${loc.latitude},${loc.longitude}`
@@ -473,6 +592,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             data.locationHistory = "";
         }
+        updateStatus("Submitting form...");
 
         try {
             await saveAndSync(data);
@@ -486,12 +606,26 @@ document.addEventListener("DOMContentLoaded", () => {
             updateStatus("Form submitted successfully.");
 
             // Reset green-highlighted dropdowns
-            resetDropdowns();
+            if (typeof resetDropdowns === 'function') {
+                resetDropdowns();
+            }
 
             updatePendingCount();
         } catch (error) {
             console.error("Submission error:", error);
-            alert("There was an error submitting the form. Please try again.");
+            if (String(error)?.includes("exceeded the quota")) {
+                alert("Storage quota limit reached. Please try again later.");
+                updateStatus("Storage quota limit reached.");
+                return;
+            }
+
+            if (navigator.onLine) {
+                alert("There was an issue with the server. Please try again.");
+            } else {
+                // Save the data offline if the network is unavailable
+                saveOffline(data);
+                updateStatus("Network issue detected. Your form has been saved offline and will sync automatically when online.");
+            }
         }
     });
 
@@ -505,17 +639,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function saveAndSync(data) {
-        saveOffline(data);
-        updateStatus("Response saved offline.");
-        if (navigator.onLine) {
-            syncData();
-        }
+        return new Promise(async (resolve, reject) => {
+            try {
+                await saveOffline(data);
+                updateStatus("Response saved offline.");
+                if (navigator.onLine) {
+                    await syncData();
+                }
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        });
     }
 
     function saveOffline(data) {
         const responses = JSON.parse(localStorage.getItem("observations_responses") || "[]");
         responses.push(data);
         localStorage.setItem("observations_responses", JSON.stringify(responses));
+        updatePendingCount();
     }
 
     async function syncData() {
@@ -527,13 +669,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let unsyncedResponses = [];
         const username = localStorage.getItem("username")
-        const signIn = JSON.parse(localStorage.getItem("site_sign_in_status"))
+        const signIn = JSON.parse(localStorage.getItem("site_sign_in_status") || "{}");
 
         for (const response of responses) {
             try {
                 response.username = username
                 response.propertyName = signIn.propertyName
+                const photoIds = structuredClone(response.photoIds || []);
+                // For each submission, get the actual photo data from IndexedDB
+                if (response.photoIds) {
+                    const photoIds = JSON.parse(response.photoIds);
+                    const photoDataArray = [];
+
+                    // Get all photos from IndexedDB based on their IDs
+                    for (const id of photoIds) {
+                        try {
+                            const photoData = await getPhotoFromIndexedDB(id);
+                            photoDataArray.push(photoData);
+                        } catch (error) {
+                            console.error("Error retrieving photo from IndexedDB:", error);
+                        }
+                    }
+
+                    // Store the actual photo data in the response
+                    response.photos = JSON.stringify(photoDataArray);
+
+                    // Remove the temporary photoIds field
+                    delete response.photoIds;
+                }
+
                 await sendToGoogleSheet(response);
+                // delete photos
+                await Promise.all(JSON.parse(photoIds).map(id => deletePhotoFromIndexedDB(id)));
+
                 updateStatus("Data synced successfully.");
             } catch (error) {
                 console.error("Sync error for response:", response, error);
