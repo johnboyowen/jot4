@@ -76,7 +76,7 @@ self.addEventListener('fetch', (event) => {
     const requestUrl = new URL(event.request.url);
 
     const noCacheEndpoints = [
-        'https://script.google.com/macros/s/AKfycbwF21dLgvO7OQ9kv5DemOKwPqVsykfzKh3aT4nJPVwf6NfgCloGUuUlo3jYvc8ni4UqMg/exec'
+        'https://script.google.com/macros/s/AKfycbzE3KKWENmuVoP9VkFStjIUX00bfyMrNCNSWZVX3JQQPKJpIhnDYg0WLUC7OTsGkLZQvQ/exec'
     ];
 
     // Check if the request should bypass cache
