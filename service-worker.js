@@ -1,7 +1,7 @@
-const CACHE_SITE_SIGN_IN = 'site-sign-in-cache-v57';
-const CACHE_DEER_CULL = 'deer-cull-cache-v57';
-const CACHE_OBSERVATIONS = 'observations-cache-v57';
-const GENERAL_CACHE = 'general-cache-v57';
+const CACHE_SITE_SIGN_IN = 'site-sign-in-cache-v58';
+const CACHE_DEER_CULL = 'deer-cull-cache-v58';
+const CACHE_OBSERVATIONS = 'observations-cache-v58';
+const GENERAL_CACHE = 'general-cache-v58';
 
 // Install event
 self.addEventListener('install', (event) => {
