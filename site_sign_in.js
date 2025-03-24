@@ -736,7 +736,7 @@ document.addEventListener("DOMContentLoaded", () => {
             updateStatus("Some data could not be synced.");
         } else {
             localStorage.removeItem("site_sign_in_responses");
-            // window.location.href = "index_page.html"
+            window.location.href = "index_page.html"
         }
 
         updatePendingCount();
