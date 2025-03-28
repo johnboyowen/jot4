@@ -1,6 +1,7 @@
 const STORAGE_KEYS = {
     signInData: 'site_sign_in_data',
     signInStatus: 'site_sign_in_status',
+    signInRowId: 'site_sign_in_row_id',
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -118,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Function to send update to Google Sheet
     async function sendUpdateToGoogleSheet(data) {
         data.action = "site_sign_in_location_update"
-        const scriptURL = `https://script.google.com/macros/s/AKfycbw45LpKks49YpqIMLy9wZiLwPKP5buMJ9eTKr3dla20CFPlGekrpFEC9mL9RnqRJBE6jQ/exec`;
+        const scriptURL = `https://script.google.com/macros/s/AKfycbxq94dlPPefJiff50T6m93s89YpXWXu6NHwmhgWna5ZoRWGMewsnzSht8LLoieF98kf_A/exec`;
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -582,11 +583,11 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        if (!photoData || !photoData.length) {
-            submitButton.removeAttribute("disabled");
-            alert("At least 1 photo is required.");
-            return;
-        }
+        // if (!photoData || !photoData.length) {
+        //     submitButton.removeAttribute("disabled");
+        //     alert("At least 1 photo is required.");
+        //     return;
+        // }
 
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
@@ -617,6 +618,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             await saveAndSync(data);
+            const signInStatus = {
+                status: "success",
+                hasSignedIn: true,
+                placeName: data.propertyName,
+            };
+            localStorage.setItem(STORAGE_KEYS.signInStatus, JSON.stringify(signInStatus))
             localStorage.setItem("current_site_sign_in_tracking_form_id", formId);
             form.reset();
             photoData.length = 0;
@@ -747,7 +754,7 @@ document.addEventListener("DOMContentLoaded", () => {
             updateStatus("Some data could not be synced.");
         } else {
             localStorage.removeItem("site_sign_in_responses");
-            window.location.href = "index_page.html"
+            // window.location.href = "index_page.html"
         }
 
         updatePendingCount();
@@ -755,7 +762,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function sendToGoogleSheet(data) {
         data.action = "signin"
-        const scriptURL = "https://script.google.com/macros/s/AKfycbw45LpKks49YpqIMLy9wZiLwPKP5buMJ9eTKr3dla20CFPlGekrpFEC9mL9RnqRJBE6jQ/exec";
+        const scriptURL = "https://script.google.com/macros/s/AKfycbxq94dlPPefJiff50T6m93s89YpXWXu6NHwmhgWna5ZoRWGMewsnzSht8LLoieF98kf_A/exec";
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -765,6 +772,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!response.ok) {
             throw new Error("Network response was not ok");
         }
+
+        localStorage.setItem(STORAGE_KEYS.signInRowId, (await response.json()).data);
     }
 
     viewPendingButton.addEventListener("click", () => {
@@ -1899,8 +1908,8 @@ function checkLoginStatus() {
     }
 }
 
-const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbw45LpKks49YpqIMLy9wZiLwPKP5buMJ9eTKr3dla20CFPlGekrpFEC9mL9RnqRJBE6jQ/exec?action=dropdowns";
-const localStorageKey = STORAGE_KEYS.signInData;
+const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbxq94dlPPefJiff50T6m93s89YpXWXu6NHwmhgWna5ZoRWGMewsnzSht8LLoieF98kf_A/exec?action=dropdowns";
+const localStorageKey = "dropdown_data";
 
 document.addEventListener("DOMContentLoaded", function () {
     const savedData = localStorage.getItem(localStorageKey);

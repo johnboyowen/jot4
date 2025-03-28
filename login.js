@@ -74,3 +74,34 @@ async function checkLoginStatusAndLoadData() {
 }
 
 window.onload = checkLoginStatusAndLoadData;
+
+
+const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbxq94dlPPefJiff50T6m93s89YpXWXu6NHwmhgWna5ZoRWGMewsnzSht8LLoieF98kf_A/exec?action=dropdowns";
+const localStorageKey = "dropdown_data";
+
+document.addEventListener("DOMContentLoaded", function () {
+    const savedData = localStorage.getItem(localStorageKey);
+    console.log(savedData);
+    
+    if (savedData) {
+        console.log("Data already in local storage");
+    } else {
+        console.log("No data in localStorage, fetching from server");
+        fetchFormData();
+    }
+
+    if (navigator.onLine) {
+        fetchFormData();
+    }
+});
+
+function fetchFormData() {
+    fetch(loadDropdownScriptUrl)
+        .then(response => response.json())
+        .then(data => {
+            localStorage.setItem(localStorageKey, JSON.stringify(data));
+        })
+        .catch(error => {
+            console.error("Error fetching form data:", error);
+        });
+}

@@ -3,16 +3,17 @@ const STORAGE_KEYS = {
     siteSignIn: 'site_sign_in_responses',
     deerCull: 'deer_cull_responses',
     observations: 'observations_responses',
+    siteSignOut: 'site_sign_out_responses',
     signInStatus: 'site_sign_in_status',
 };
 
 // Script URLs for API endpoints
 const SCRIPT_URLS = {
-    siteSignIn: "https://script.google.com/macros/s/AKfycbw45LpKks49YpqIMLy9wZiLwPKP5buMJ9eTKr3dla20CFPlGekrpFEC9mL9RnqRJBE6jQ/exec",
-    deerCull: "https://script.google.com/macros/s/AKfycbw45LpKks49YpqIMLy9wZiLwPKP5buMJ9eTKr3dla20CFPlGekrpFEC9mL9RnqRJBE6jQ/exec",
-    observations: "https://script.google.com/macros/s/AKfycbw45LpKks49YpqIMLy9wZiLwPKP5buMJ9eTKr3dla20CFPlGekrpFEC9mL9RnqRJBE6jQ/exec",
+    siteSignIn: "https://script.google.com/macros/s/AKfycbxq94dlPPefJiff50T6m93s89YpXWXu6NHwmhgWna5ZoRWGMewsnzSht8LLoieF98kf_A/exec",
+    deerCull: "https://script.google.com/macros/s/AKfycbxq94dlPPefJiff50T6m93s89YpXWXu6NHwmhgWna5ZoRWGMewsnzSht8LLoieF98kf_A/exec",
+    observations: "https://script.google.com/macros/s/AKfycbxq94dlPPefJiff50T6m93s89YpXWXu6NHwmhgWna5ZoRWGMewsnzSht8LLoieF98kf_A/exec",
     // Use the same URL as siteSignIn since we've updated that script to handle both functions
-    signInStatus: "https://script.google.com/macros/s/AKfycbw45LpKks49YpqIMLy9wZiLwPKP5buMJ9eTKr3dla20CFPlGekrpFEC9mL9RnqRJBE6jQ/exec?action=checkSignIn"
+    signInStatus: "https://script.google.com/macros/s/AKfycbxq94dlPPefJiff50T6m93s89YpXWXu6NHwmhgWna5ZoRWGMewsnzSht8LLoieF98kf_A/exec?action=checkSignIn"
 };
 
 // Register service worker for periodic sync (if supported)
@@ -46,16 +47,36 @@ function logout() {
     localStorage.removeItem('current_site_sign_in_tracking_form_id');
     localStorage.removeItem('site_sign_in_responses');
     localStorage.removeItem('observations_latestStatus');
-    localStorage.removeItem('site_sign_in_data');
+    localStorage.removeItem('dropdown_data');
     window.location.href = 'index.html';
+}
+
+function saveUpdateRequest(formId, locationHistoryString) {
+    const pendingUpdates = JSON.parse(localStorage.getItem("site_sign_in_pending_updates") || "[]");
+
+    // Check if update for this form already exists
+    const existingIndex = pendingUpdates.findIndex(update => update.formId === formId);
+    if (existingIndex >= 0) {
+        // Update existing request
+        pendingUpdates[existingIndex].locationHistory = locationHistoryString;
+    } else {
+        // Add new update request
+        pendingUpdates.push({
+            formId: formId,
+            locationHistory: locationHistoryString,
+            timestamp: new Date().toISOString()
+        });
+    }
+
+    localStorage.setItem("site_sign_in_pending_updates", JSON.stringify(pendingUpdates));
 }
 
 async function siteSignOutAction() {
     // TODO:
     // if (!navigator.onLine) {
     //     // Store update request for later sync
-    //     saveUpdateRequest(formId, locationHistoryString);
-    //     updateStatus("Offline: Location history update saved for later sync.");
+    //     saveSignOutRequest(formId);
+    //     updateStatus("Offline: site sign out saved for later sync.");
     //     return;
     // }
 
@@ -67,14 +88,14 @@ async function siteSignOutAction() {
             action: "site_sign_out",
         };
 
-        const scriptURL = `https://script.google.com/macros/s/AKfycbw45LpKks49YpqIMLy9wZiLwPKP5buMJ9eTKr3dla20CFPlGekrpFEC9mL9RnqRJBE6jQ/exec`;
+        const scriptURL = `https://script.google.com/macros/s/AKfycbxq94dlPPefJiff50T6m93s89YpXWXu6NHwmhgWna5ZoRWGMewsnzSht8LLoieF98kf_A/exec`;
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams(updateData),
         });
 
-        if (!response.ok) { 
+        if (!response.ok) {
             throw new Error("Network response was not ok");
         }
     } catch (error) {
@@ -181,18 +202,36 @@ function updatePendingCounts() {
         siteSignIn: JSON.parse(localStorage.getItem(STORAGE_KEYS.siteSignIn) || '[]').length,
         deerCull: JSON.parse(localStorage.getItem(STORAGE_KEYS.deerCull) || '[]').length,
         observations: JSON.parse(localStorage.getItem(STORAGE_KEYS.observations) || '[]').length,
+        siteSignOut: JSON.parse(localStorage.getItem(STORAGE_KEYS.siteSignOut) || '[]').length,
     };
 
     const pendingCountSiteSignIn = document.getElementById('pendingCountSiteSignIn');
     const pendingCountDeerCull = document.getElementById('pendingCountDeerCull');
     const pendingCountObservations = document.getElementById('pendingCountObservations');
+    const pendingSiteSignOut = document.getElementById('pendingSiteSignOut');
 
     if (pendingCountSiteSignIn) pendingCountSiteSignIn.textContent = `(${counts.siteSignIn})`;
     if (pendingCountDeerCull) pendingCountDeerCull.textContent = `(${counts.deerCull})`;
     if (pendingCountObservations) pendingCountObservations.textContent = `(${counts.observations})`;
+    if (pendingSiteSignOut) pendingSiteSignOut.textContent = `(${counts.observations})`;
 }
 
-// Check if the user has already signed in today
+async function checkNetwork() {
+    try {
+        await fetch('https://www.google.com', { 
+            method: 'HEAD', 
+            mode: 'no-cors', 
+            cache: 'no-store',
+            timeout: 3000 
+        });
+        return true;
+    } catch (error) {
+        console.log('Network check failed:', error);
+        return false;
+    }
+}
+
+// Enhanced check and update sign-in status
 async function checkAndUpdateSignInStatus(forceCheck = false) {
     const username = localStorage.getItem('username');
     if (!username) {
@@ -200,37 +239,55 @@ async function checkAndUpdateSignInStatus(forceCheck = false) {
         return false;
     }
 
+    // First, check cached status
     const cachedStatus = JSON.parse(localStorage.getItem(STORAGE_KEYS.signInStatus) || 'null');
-    if (cachedStatus && !forceCheck) {
+    
+    // If not force checking and we have a cached status, use it
+    if (!forceCheck && cachedStatus) {
         console.log("Using cached sign-in status:", cachedStatus);
         return cachedStatus.hasSignedIn;
     }
 
-    if (!navigator.onLine && cachedStatus) {
+    console.log({n:await checkNetwork()});
+    
+    // Check network with more robust method
+    const isOnline = await checkNetwork();
+    console.log({cachedStatus, forceCheck, isOnline});
+    
+    // If offline and we have a cached status, use it
+    if (!isOnline && cachedStatus) {
         console.log("Offline, using last known sign-in status:", cachedStatus);
         return cachedStatus.hasSignedIn;
     }
 
-    try {
-        const response = await fetch(`${SCRIPT_URLS.signInStatus}&username=${username}`);
+    // If online, try to fetch from server
+    if (isOnline) {
+        try {
+            const response = await fetch(`${SCRIPT_URLS.signInStatus}&username=${username}`);
 
-        if (response.ok) {
-            const data = await response.json();
-            localStorage.setItem(STORAGE_KEYS.signInStatus, JSON.stringify(data));
-            console.log("Updated sign-in status from server:", data);
-            return data.hasSignedIn;
-        } else {
-            console.error("Error when checking sign-in status");
-            return false;
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem(STORAGE_KEYS.signInStatus, JSON.stringify(data));
+                console.log("Updated sign-in status from server:", data);
+                return data.hasSignedIn;
+            } else {
+                console.error("Error when checking sign-in status");
+                // Fallback to cached status if available
+                return cachedStatus ? cachedStatus.hasSignedIn : false;
+            }
+        } catch (error) {
+            console.error("Error checking sign-in status:", error);
+            // Fallback to cached status if available
+            return cachedStatus ? cachedStatus.hasSignedIn : false;
         }
-    } catch (error) {
-        console.error("Error checking sign-in status:", error);
-        return false;
     }
+
+    // If all else fails, return false
+    return false;
 }
 
 async function updateFormAccessibility() {
-    const hasSignedIn = await checkAndUpdateSignInStatus(true);
+    const hasSignedIn = await checkAndUpdateSignInStatus(!!navigator.onLine);
     const signInButton = document.getElementById("signInButton")
     const signOutButton = document.getElementById("signOutButton")
     const deerCullSubmissionsButton = document.getElementById("deerCullSubmissionsButton")
@@ -382,27 +439,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
     }
 
-    // Function to save update request for later sync
-    function saveUpdateRequest(formId, locationHistoryString) {
-        const pendingUpdates = JSON.parse(localStorage.getItem("site_sign_in_pending_updates") || "[]");
-
-        // Check if update for this form already exists
-        const existingIndex = pendingUpdates.findIndex(update => update.formId === formId);
-        if (existingIndex >= 0) {
-            // Update existing request
-            pendingUpdates[existingIndex].locationHistory = locationHistoryString;
-        } else {
-            // Add new update request
-            pendingUpdates.push({
-                formId: formId,
-                locationHistory: locationHistoryString,
-                timestamp: new Date().toISOString()
-            });
-        }
-
-        localStorage.setItem("site_sign_in_pending_updates", JSON.stringify(pendingUpdates));
-    }
-
     // Function to remove pending update
     function removePendingUpdate(formId) {
         const pendingUpdates = JSON.parse(localStorage.getItem("site_sign_in_pending_updates") || "[]");
@@ -413,7 +449,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Function to send update to Google Sheet
     async function sendUpdateToGoogleSheet(data) {
         data.action = "site_sign_in_location_update"
-        const scriptURL = `https://script.google.com/macros/s/AKfycbw45LpKks49YpqIMLy9wZiLwPKP5buMJ9eTKr3dla20CFPlGekrpFEC9mL9RnqRJBE6jQ/exec`;
+        const scriptURL = `https://script.google.com/macros/s/AKfycbxq94dlPPefJiff50T6m93s89YpXWXu6NHwmhgWna5ZoRWGMewsnzSht8LLoieF98kf_A/exec`;
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
