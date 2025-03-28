@@ -579,6 +579,11 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        if (!photoData || !photoData.length) {
+            alert("At least 1 photo is required.");
+            return;
+        }
+
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
 
@@ -696,7 +701,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     delete response.photoIds;
                 }
 
-                if (response.propellerPhotoId) {
+                if (JSON.parse(response.propellerPhotoId)?.length) {
                     const photoId = JSON.parse(response.propellerPhotoId);
 
                     try {
@@ -708,7 +713,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }
 
-                if (response.auxPropellerPhotoId) {
+                if (JSON.parse(response.auxPropellerPhotoId)?.length) {
                     const photoId = JSON.parse(response.auxPropellerPhotoId);
 
                     try {

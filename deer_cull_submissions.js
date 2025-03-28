@@ -559,6 +559,11 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        if (!photoData || !photoData.length) {
+            alert("At least 1 photo is required.");
+            return;
+        }
+
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
 
