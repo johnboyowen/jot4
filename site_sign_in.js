@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const longitudeDisplay = document.getElementById("longitudeDisplay");
     const propertyNameSelect = document.getElementById("propertyName");
     const boatInspectionGroup = document.getElementById("boatInspectionGroup");
+    const submitButton = document.getElementById("submitButton");
 
     const MAX_FILE_SIZE = 15000000; // 15MB per photo
     const MAX_PHOTOS = 5; // Maximum number of photos allowed
@@ -573,13 +574,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
+        submitButton.setAttribute("disabled", true);
 
         if (!document.getElementById("latitude").value || !document.getElementById("longitude").value) {
+            submitButton.removeAttribute("disabled");
             alert("Please capture GPS location before submitting.");
             return;
         }
 
         if (!photoData || !photoData.length) {
+            submitButton.removeAttribute("disabled");
             alert("At least 1 photo is required.");
             return;
         }
@@ -622,6 +626,7 @@ document.addEventListener("DOMContentLoaded", () => {
             latitudeDisplay.textContent = "N/A";
             longitudeDisplay.textContent = "N/A";
             updateStatus("Form submitted successfully.");
+            submitButton.removeAttribute("disabled");
 
             // Reset green-highlighted dropdowns
             if (typeof resetDropdowns === 'function') {
@@ -630,6 +635,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             updatePendingCount();
         } catch (error) {
+            submitButton.removeAttribute("disabled");
             console.error("Submission error:", error);
             alert("There was an error submitting the form. Please try again.");
         }
