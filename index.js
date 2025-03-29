@@ -42,7 +42,7 @@ function logout() {
     sessionStorage.removeItem('username');
     localStorage.removeItem(STORAGE_KEYS.signInStatus);
     localStorage.removeItem('site_sign_in_latestStatus');
-    localStorage.removeItem('site_sign_in_location_histories');
+    // localStorage.removeItem('site_sign_in_location_histories');
     localStorage.removeItem('site_sign_in_pending_updates');
     localStorage.removeItem('current_site_sign_in_tracking_form_id');
     localStorage.removeItem('site_sign_in_responses');
@@ -71,24 +71,59 @@ function saveUpdateRequest(formId, locationHistoryString) {
     localStorage.setItem("site_sign_in_pending_updates", JSON.stringify(pendingUpdates));
 }
 
+function saveSignOutRequest(username) {
+    const pendingSignOuts = JSON.parse(localStorage.getItem(STORAGE_KEYS.siteSignOut) || "[]");
+    
+    // Check if we already have a pending sign-out for this user
+    const existingIndex = pendingSignOuts.findIndex(request => request.username === username);
+    
+    if (existingIndex >= 0) {
+        // Update existing request with new timestamp
+        pendingSignOuts[existingIndex].timestamp = new Date().toISOString();
+    } else {
+        // Add new sign-out request
+        pendingSignOuts.push({
+            username: username,
+            action: "site_sign_out",
+            timestamp: new Date().toISOString()
+        });
+    }
+
+    localStorage.setItem(STORAGE_KEYS.siteSignOut, JSON.stringify(pendingSignOuts));
+}
+
+
 async function siteSignOutAction() {
-    // TODO:
-    // if (!navigator.onLine) {
-    //     // Store update request for later sync
-    //     saveSignOutRequest(formId);
-    //     updateStatus("Offline: site sign out saved for later sync.");
-    //     return;
-    // }
+    const username = localStorage.getItem('username');
+    
+    // Update local sign-in status
+    const signInStatus = {
+        status: "success",
+        hasSignedIn: false,
+        placeName: ""
+    };
+    localStorage.setItem(STORAGE_KEYS.signInStatus, JSON.stringify(signInStatus));
+
+    if (!navigator.onLine) {
+        // Store sign-out request for later sync
+        saveSignOutRequest(username);
+        // Update UI to indicate offline status
+        const statusElement = document.getElementById("status");
+        if (statusElement) {
+            statusElement.innerText = "Offline: Site sign-out saved for later sync.";
+        } else {
+            alert("Offline: Site sign-out saved for later sync.");
+        }
+        return false;
+    }
 
     try {
-        const username = localStorage.getItem('username')
-
         const updateData = {
             username,
             action: "site_sign_out",
         };
 
-        const scriptURL = `https://script.google.com/macros/s/AKfycbxq94dlPPefJiff50T6m93s89YpXWXu6NHwmhgWna5ZoRWGMewsnzSht8LLoieF98kf_A/exec`;
+        const scriptURL = SCRIPT_URLS.siteSignIn;
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -98,19 +133,38 @@ async function siteSignOutAction() {
         if (!response.ok) {
             throw new Error("Network response was not ok");
         }
+        
+        return true;
     } catch (error) {
-        console.error("Update error:", error);
-        // Store update request for later sync
-        saveUpdateRequest(formId, locationHistoryString);
-        updateStatus("Error updating location history. Will retry when online.");
+        console.error("Sign-out error:", error);
+        // Store sign-out request for later sync
+        saveSignOutRequest(username);
+        // Update UI to indicate error
+        const statusElement = document.getElementById("status");
+        if (statusElement) {
+            statusElement.innerText = "Error during sign-out. Will retry when online.";
+        }
+        return false;
     }
 }
 
 async function siteSignOut() {
-    await siteSignOutAction()
-    localStorage.removeItem('site_sign_in_location_histories');
-    localStorage.removeItem('current_site_sign_in_tracking_form_id');
-    location.reload()
+    const success = await siteSignOutAction();
+    if (success || !navigator.onLine) {
+        // Clear location tracking data
+        // localStorage.removeItem('site_sign_in_location_histories');
+        localStorage.removeItem('current_site_sign_in_tracking_form_id');
+        
+        // Update sign-in status locally for immediate UI effect
+        const signInStatus = {
+            status: "success",
+            hasSignedIn: false,
+            placeName: ""
+        };
+        localStorage.setItem(STORAGE_KEYS.signInStatus, JSON.stringify(signInStatus));
+    }
+    location.reload();
+
 }
 
 async function syncAllSubmissions() {
@@ -182,6 +236,7 @@ async function syncAllSubmissions() {
             syncData(STORAGE_KEYS.siteSignIn, SCRIPT_URLS.siteSignIn),
             syncData(STORAGE_KEYS.deerCull, SCRIPT_URLS.deerCull),
             syncData(STORAGE_KEYS.observations, SCRIPT_URLS.observations),
+            syncData(STORAGE_KEYS.siteSignOut, SCRIPT_URLS.siteSignIn), // Using siteSignIn endpoint for sign-out
         ]);
 
         await checkAndUpdateSignInStatus(true);
@@ -248,11 +303,8 @@ async function checkAndUpdateSignInStatus(forceCheck = false) {
         return cachedStatus.hasSignedIn;
     }
 
-    console.log({n:await checkNetwork()});
-    
     // Check network with more robust method
     const isOnline = await checkNetwork();
-    console.log({cachedStatus, forceCheck, isOnline});
     
     // If offline and we have a cached status, use it
     if (!isOnline && cachedStatus) {
@@ -311,6 +363,13 @@ async function updateFormAccessibility() {
     }
 }
 
+function siteSignIn(){
+    if(JSON.parse(localStorage.getItem(STORAGE_KEYS.siteSignIn) || '[]').length){
+        alert("Sync the previous site sign in to continue")
+    }else{
+        location.href='site_sign_in.html'
+    }
+}
 // Function to set up the site sign-in form submission
 function setupSiteSignInForm() {
     const form = document.querySelector('form');
@@ -385,8 +444,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     let locationTrackingInterval = null;
-    const existingSiteLOcationHistory = localStorage.getItem("site_sign_in_location_histories")
-    let locationHistory = existingSiteLOcationHistory ? JSON.parse(existingSiteLOcationHistory) : [];
+    // const existingSiteLOcationHistory = localStorage.getItem("site_sign_in_location_histories")
+    // let locationHistory = existingSiteLOcationHistory ? JSON.parse(existingSiteLOcationHistory) : [];
+    let locationHistory = [];
 
     // Function to update location history for an existing submission
     async function updateLocationHistory(formId) {
@@ -398,7 +458,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         // Format location history as comma-separated values
         // Format: "lat1,lon1;lat2,lon2;lat3,lon3"
-        localStorage.setItem("site_sign_in_location_histories", JSON.stringify(locationHistory))
+        // localStorage.setItem("site_sign_in_location_histories", JSON.stringify(locationHistory))
         const locationHistoryString = locationHistory.map(loc =>
             `${loc.latitude},${loc.longitude}`
         ).join(';');

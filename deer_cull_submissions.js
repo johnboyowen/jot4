@@ -23,8 +23,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let locationTrackingInterval = null;
-    const existingSiteLOcationHistory = localStorage.getItem("site_sign_in_location_histories")
-    let locationHistory = existingSiteLOcationHistory ? JSON.parse(existingSiteLOcationHistory) : [];
+    // const existingSiteLOcationHistory = localStorage.getItem("site_sign_in_location_histories")
+    // let locationHistory = existingSiteLOcationHistory ? JSON.parse(existingSiteLOcationHistory) : [];
+    let locationHistory = [];
 
     // Function to update location history for an existing submission
     async function updateLocationHistory(formId) {
@@ -36,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Format location history as comma-separated values
         // Format: "lat1,lon1;lat2,lon2;lat3,lon3"
-        localStorage.setItem("site_sign_in_location_histories", JSON.stringify(locationHistory))
+        // localStorage.setItem("site_sign_in_location_histories", JSON.stringify(locationHistory))
         const locationHistoryString = locationHistory.map(loc =>
             `${loc.latitude},${loc.longitude}`
         ).join(';');

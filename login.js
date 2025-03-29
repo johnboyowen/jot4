@@ -81,8 +81,6 @@ const localStorageKey = "dropdown_data";
 
 document.addEventListener("DOMContentLoaded", function () {
     const savedData = localStorage.getItem(localStorageKey);
-    console.log(savedData);
-    
     if (savedData) {
         console.log("Data already in local storage");
     } else {
