@@ -9,11 +9,11 @@ const STORAGE_KEYS = {
 
 // Script URLs for API endpoints
 const SCRIPT_URLS = {
-    siteSignIn: "https://script.google.com/macros/s/AKfycbxq94dlPPefJiff50T6m93s89YpXWXu6NHwmhgWna5ZoRWGMewsnzSht8LLoieF98kf_A/exec",
-    deerCull: "https://script.google.com/macros/s/AKfycbxq94dlPPefJiff50T6m93s89YpXWXu6NHwmhgWna5ZoRWGMewsnzSht8LLoieF98kf_A/exec",
-    observations: "https://script.google.com/macros/s/AKfycbxq94dlPPefJiff50T6m93s89YpXWXu6NHwmhgWna5ZoRWGMewsnzSht8LLoieF98kf_A/exec",
+    siteSignIn: "https://script.google.com/macros/s/AKfycbxHUmozCiDaUZ2bwTbtlNwuKKijFlr1d6z1RHQF2_engq-eEodaaHgmIoSStFdOa-iugA/exec",
+    deerCull: "https://script.google.com/macros/s/AKfycbxHUmozCiDaUZ2bwTbtlNwuKKijFlr1d6z1RHQF2_engq-eEodaaHgmIoSStFdOa-iugA/exec",
+    observations: "https://script.google.com/macros/s/AKfycbxHUmozCiDaUZ2bwTbtlNwuKKijFlr1d6z1RHQF2_engq-eEodaaHgmIoSStFdOa-iugA/exec",
     // Use the same URL as siteSignIn since we've updated that script to handle both functions
-    signInStatus: "https://script.google.com/macros/s/AKfycbxq94dlPPefJiff50T6m93s89YpXWXu6NHwmhgWna5ZoRWGMewsnzSht8LLoieF98kf_A/exec?action=checkSignIn"
+    signInStatus: "https://script.google.com/macros/s/AKfycbxHUmozCiDaUZ2bwTbtlNwuKKijFlr1d6z1RHQF2_engq-eEodaaHgmIoSStFdOa-iugA/exec?action=checkSignIn"
 };
 
 // Register service worker for periodic sync (if supported)
@@ -509,7 +509,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Function to send update to Google Sheet
     async function sendUpdateToGoogleSheet(data) {
         data.action = "site_sign_in_location_update"
-        const scriptURL = `https://script.google.com/macros/s/AKfycbxq94dlPPefJiff50T6m93s89YpXWXu6NHwmhgWna5ZoRWGMewsnzSht8LLoieF98kf_A/exec`;
+        const scriptURL = `https://script.google.com/macros/s/AKfycbxHUmozCiDaUZ2bwTbtlNwuKKijFlr1d6z1RHQF2_engq-eEodaaHgmIoSStFdOa-iugA/exec`;
         const response = await fetch(scriptURL, {
             method: "POST",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

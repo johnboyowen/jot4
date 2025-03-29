@@ -76,7 +76,7 @@ async function checkLoginStatusAndLoadData() {
 window.onload = checkLoginStatusAndLoadData;
 
 
-const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbxq94dlPPefJiff50T6m93s89YpXWXu6NHwmhgWna5ZoRWGMewsnzSht8LLoieF98kf_A/exec?action=dropdowns";
+const loadDropdownScriptUrl = "https://script.google.com/macros/s/AKfycbxHUmozCiDaUZ2bwTbtlNwuKKijFlr1d6z1RHQF2_engq-eEodaaHgmIoSStFdOa-iugA/exec?action=dropdowns";
 const localStorageKey = "dropdown_data";
 
 document.addEventListener("DOMContentLoaded", function () {
