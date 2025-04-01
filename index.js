@@ -587,6 +587,19 @@ document.addEventListener('DOMContentLoaded', async function () {
         startLocationTracking()
     }
 
+    function handleLocationError(error) {
+        switch (error.code) {
+            case error.PERMISSION_DENIED:
+                return "Location permission denied.";
+            case error.POSITION_UNAVAILABLE:
+                return "Location information unavailable.";
+            case error.TIMEOUT:
+                return "Request timed out.";
+            default:
+                return "An unknown error occurred.";
+        }
+    }
+
     function captureCurrentLocation() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
