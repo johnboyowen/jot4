@@ -645,9 +645,7 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 await saveOffline(data);
                 updateStatus("Response saved offline.");
-                if (navigator.onLine) {
-                    await syncData();
-                }
+                await syncData();
                 resolve();
             } catch (error) {
                 reject(error);
@@ -723,9 +721,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     delete response.photoIds;
                 }
 
-                await sendToGoogleSheet(response);
-                // delete photos
-                await Promise.all(JSON.parse(photoIds).map(id => deletePhotoFromIndexedDB(id)));
+                if (navigator.onLine) {
+                    await sendToGoogleSheet(response);
+                    // delete photos
+                    await Promise.all(JSON.parse(photoIds).map(id => deletePhotoFromIndexedDB(id)));
+                }
 
                 updateStatus("Data synced successfully.");
             } catch (error) {

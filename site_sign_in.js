@@ -642,7 +642,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             updatePendingCount();
-            window.location.href = "index_page.html"
+            // window.location.href = "index_page.html"
         } catch (error) {
             submitButton.removeAttribute("disabled");
             console.error("Submission error:", error);
@@ -664,9 +664,7 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 await saveOffline(data);
                 updateStatus("Response saved offline.");
-                if (navigator.onLine) {
-                    await syncData();
-                }
+                await syncData();
                 resolve();
             } catch (error) {
                 reject(error);
@@ -740,10 +738,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }
 
-                await sendToGoogleSheet(response);
-                // delete photos
-                await Promise.all(JSON.parse(photoIds).map(id => deletePhotoFromIndexedDB(id)));
-
+                if (navigator.onLine) {
+                    await sendToGoogleSheet(response);
+                    // delete photos
+                    await Promise.all(JSON.parse(photoIds).map(id => deletePhotoFromIndexedDB(id)));
+                }
+                
                 updateStatus("Data synced successfully.");
             } catch (error) {
                 console.error("Sync error for response:", response, error);
