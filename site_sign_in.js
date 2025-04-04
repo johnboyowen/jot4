@@ -268,7 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (navigator.geolocation) {
             let watchId;
             let timerId;
-            const maxTime = 1;
+            const maxTime = 180;
             let remainingTime = maxTime;
             let lastLatitude = null;
             let lastLongitude = null;
@@ -578,11 +578,11 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
         submitButton.setAttribute("disabled", true);
 
-        // if (!document.getElementById("latitude").value || !document.getElementById("longitude").value) {
-        //     submitButton.removeAttribute("disabled");
-        //     alert("Please capture GPS location before submitting.");
-        //     return;
-        // }
+        if (!document.getElementById("latitude").value || !document.getElementById("longitude").value) {
+            submitButton.removeAttribute("disabled");
+            alert("Please capture GPS location before submitting.");
+            return;
+        }
 
         if (!photoData || !photoData.length) {
             submitButton.removeAttribute("disabled");
@@ -642,7 +642,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             updatePendingCount();
-            // window.location.href = "index_page.html"
         } catch (error) {
             submitButton.removeAttribute("disabled");
             console.error("Submission error:", error);
@@ -757,7 +756,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             localStorage.removeItem("site_sign_in_responses");
         }
-
+        window.location.href = "index_page.html"
         updatePendingCount();
     }
 

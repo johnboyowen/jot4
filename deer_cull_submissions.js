@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (navigator.geolocation) {
             let watchId;
             let timerId;
-            const maxTime = 1;
+            const maxTime = 180;
             let remainingTime = maxTime;
             let lastLatitude = null;
             let lastLongitude = null;
@@ -557,11 +557,11 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
 
         // Ensure GPS coordinates are captured
-        // if (!document.getElementById("latitude").value || !document.getElementById("longitude").value) {
-        //     submitButton.removeAttribute("disabled");
-        //     alert("Please capture GPS location before submitting.");
-        //     return;
-        // }
+        if (!document.getElementById("latitude").value || !document.getElementById("longitude").value) {
+            submitButton.removeAttribute("disabled");
+            alert("Please capture GPS location before submitting.");
+            return;
+        }
 
         if (!photoData || !photoData.length) {
             submitButton.removeAttribute("disabled");
@@ -611,6 +611,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             updatePendingCount();
+            window.location.href = "index_page.html"
         } catch (error) {
             submitButton.removeAttribute("disabled");
             console.error("Submission error:", error);
@@ -627,6 +628,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 saveOffline(data);
                 updateStatus("Network issue detected. Your form has been saved offline and will sync automatically when online.");
             }
+
+            window.location.href = "index_page.html"
         }
     });
 
