@@ -211,6 +211,7 @@ async function syncAllSubmissions() {
                             localStorage.setItem(STORAGE_KEYS.signInStatus, JSON.stringify(signInStatus));
                         }
                     } else {
+                        console.error(JSON.stringify(serverResponse))
                         console.error(`Server error for ${storageKey}:`, serverResponse.message);
                         unsynced.push(response);
                     }
