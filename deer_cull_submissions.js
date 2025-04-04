@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (navigator.geolocation) {
             let watchId;
             let timerId;
-            const maxTime = 180;
+            const maxTime = 1;
             let remainingTime = maxTime;
             let lastLatitude = null;
             let lastLongitude = null;
@@ -557,11 +557,11 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
 
         // Ensure GPS coordinates are captured
-        if (!document.getElementById("latitude").value || !document.getElementById("longitude").value) {
-            submitButton.removeAttribute("disabled");
-            alert("Please capture GPS location before submitting.");
-            return;
-        }
+        // if (!document.getElementById("latitude").value || !document.getElementById("longitude").value) {
+        //     submitButton.removeAttribute("disabled");
+        //     alert("Please capture GPS location before submitting.");
+        //     return;
+        // }
 
         if (!photoData || !photoData.length) {
             submitButton.removeAttribute("disabled");

@@ -673,3 +673,270 @@ window.addEventListener('online', updateFormAccessibility);
 window.addEventListener('offline', updateFormAccessibility);
 
 window.onload = checkLoginStatus;
+
+// Create a logger that shows messages on the page instead of console
+function setupDebugDisplay() {
+    // Create a debug container at the bottom of the page
+    const debugContainer = document.createElement('div');
+    debugContainer.id = 'debug-log';
+    debugContainer.style.cssText = `
+      position: fixed;
+      bottom: 40px; /* Above the version number */
+      left: 0;
+      right: 0;
+      max-height: 40vh;
+      overflow-y: auto;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #00ff00;
+      font-family: monospace;
+      font-size: 12px;
+      padding: 10px;
+      z-index: 1000;
+      border-top: 1px solid #333;
+    `;
+    document.body.appendChild(debugContainer);
+    
+    // Add a clear button
+    const clearButton = document.createElement('button');
+    clearButton.textContent = 'Clear Logs';
+    clearButton.style.cssText = `
+      position: fixed;
+      bottom: 40px;
+      right: 10px;
+      z-index: 1001;
+      padding: 5px;
+      background-color: #444;
+      color: white;
+      border: none;
+      border-radius: 3px;
+    `;
+    clearButton.addEventListener('click', () => {
+      const logContainer = document.getElementById('debug-log');
+      if (logContainer) {
+        logContainer.innerHTML = '';
+      }
+    });
+    document.body.appendChild(clearButton);
+    
+    // Override console methods
+    const originalConsole = {
+      log: console.log,
+      error: console.error,
+      warn: console.warn,
+      info: console.info
+    };
+    
+    // Function to add log to the debug container
+    function addLogToDisplay(type, ...args) {
+      const logContainer = document.getElementById('debug-log');
+      if (!logContainer) return;
+      
+      const logEntry = document.createElement('div');
+      logEntry.className = `log-${type}`;
+      
+      // Add timestamp
+      const timestamp = new Date().toLocaleTimeString();
+      logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> `;
+      
+      // Style based on type
+      switch(type) {
+        case 'error':
+          logEntry.style.color = '#ff5555';
+          break;
+        case 'warn':
+          logEntry.style.color = '#ffaa00';
+          break;
+        case 'info':
+          logEntry.style.color = '#5555ff';
+          break;
+        default:
+          logEntry.style.color = '#00ff00';
+      }
+      
+      // Format and add the actual message
+      const message = args.map(arg => {
+        if (typeof arg === 'object') {
+          try {
+            return JSON.stringify(arg);
+          } catch(e) {
+            return String(arg);
+          }
+        }
+        return String(arg);
+      }).join(' ');
+      
+      logEntry.innerHTML += message.replace(/\n/g, '<br>');
+      logContainer.appendChild(logEntry);
+      
+      // Auto-scroll to bottom
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+    
+    // Override console methods
+    console.log = function(...args) {
+      originalConsole.log.apply(console, args);
+      addLogToDisplay('log', ...args);
+    };
+    
+    console.error = function(...args) {
+      originalConsole.error.apply(console, args);
+      addLogToDisplay('error', ...args);
+    };
+    
+    console.warn = function(...args) {
+      originalConsole.warn.apply(console, args);
+      addLogToDisplay('warn', ...args);
+    };
+    
+    console.info = function(...args) {
+      originalConsole.info.apply(console, args);
+      addLogToDisplay('info', ...args);
+    };
+    
+    // Add network status monitoring
+    window.addEventListener('online', () => {
+      addLogToDisplay('info', '🌐 Network: Online');
+    });
+    
+    window.addEventListener('offline', () => {
+      addLogToDisplay('warn', '🌐 Network: Offline');
+    });
+    
+    // Log initial network state
+    addLogToDisplay('info', `🌐 Initial Network Status: ${navigator.onLine ? 'Online' : 'Offline'}`);
+    
+    // Add a function to log storage changes
+    function logStorageChanges() {
+      const storageKeys = [
+        'site_sign_in_responses',
+        'deer_cull_responses',
+        'observations_responses',
+        'site_sign_out_responses',
+        'site_sign_in_status',
+        'site_sign_in_pending_updates',
+        'isLoggedIn',
+        'username'
+      ];
+      
+      window.addEventListener('storage', (event) => {
+        if (storageKeys.includes(event.key)) {
+          addLogToDisplay('info', `Storage updated: ${event.key}`);
+          try {
+            addLogToDisplay('info', `New value: ${event.newValue}`);
+          } catch(e) {
+            addLogToDisplay('error', `Could not display new value: ${e.message}`);
+          }
+        }
+      });
+    }
+    
+    logStorageChanges();
+    
+    // Return a reference to the original console methods
+    return originalConsole;
+  }
+  
+  // Add hooks for specific functions we want to monitor
+  function addFunctionHooks() {
+    // Helper function to wrap existing functions with logging
+    function wrapFunction(obj, funcName, wrapperFn) {
+      const original = obj[funcName];
+      obj[funcName] = function(...args) {
+        wrapperFn(funcName, ...args);
+        return original.apply(this, args);
+      };
+    }
+    
+    // Intercept key functions from the application
+    if (typeof siteSignOutAction === 'function') {
+      const originalSignOut = siteSignOutAction;
+      siteSignOutAction = async function() {
+        console.log('📤 Starting siteSignOutAction');
+        const result = await originalSignOut();
+        console.log(`📤 siteSignOutAction finished, result: ${result}`);
+        return result;
+      };
+    }
+    
+    if (typeof checkAndUpdateSignInStatus === 'function') {
+      const originalCheck = checkAndUpdateSignInStatus;
+      checkAndUpdateSignInStatus = async function(forceCheck = false) {
+        console.log(`🔍 checkAndUpdateSignInStatus called, forceCheck: ${forceCheck}`);
+        const result = await originalCheck(forceCheck);
+        console.log(`🔍 Sign-in status: ${result ? 'Signed In' : 'Not Signed In'}`);
+        return result;
+      };
+    }
+    
+    if (typeof syncAllSubmissions === 'function') {
+      const originalSync = syncAllSubmissions;
+      syncAllSubmissions = async function() {
+        console.log('🔄 Starting syncAllSubmissions');
+        try {
+          await originalSync();
+          console.log('🔄 syncAllSubmissions completed successfully');
+        } catch (error) {
+          console.error('🔄 syncAllSubmissions failed', error);
+        }
+      };
+    }
+    
+    if (typeof updateFormAccessibility === 'function') {
+      const originalUpdateForm = updateFormAccessibility;
+      updateFormAccessibility = async function() {
+        console.log('🔐 Starting updateFormAccessibility');
+        await originalUpdateForm();
+        console.log('🔐 updateFormAccessibility completed');
+      };
+    }
+    
+    if (typeof checkNetwork === 'function') {
+      const originalCheckNetwork = checkNetwork;
+      checkNetwork = async function() {
+        console.log('🌐 Checking network connectivity');
+        const result = await originalCheckNetwork();
+        console.log(`🌐 Network check result: ${result ? 'Online' : 'Offline'}`);
+        return result;
+      };
+    }
+    
+    // Add hook for localStorage operations
+    const originalSetItem = localStorage.setItem;
+    localStorage.setItem = function(key, value) {
+      console.log(`💾 localStorage.setItem: ${key}`);
+      originalSetItem.call(localStorage, key, value);
+    };
+    
+    const originalRemoveItem = localStorage.removeItem;
+    localStorage.removeItem = function(key) {
+      console.log(`🗑️ localStorage.removeItem: ${key}`);
+      originalRemoveItem.call(localStorage, key);
+    };
+  }
+  
+  // Call this function after the DOM is loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    const originalConsole = setupDebugDisplay();
+    addFunctionHooks();
+    
+    // Log initial state
+    setTimeout(() => {
+      console.log('📱 Debug display initialized');
+      console.log('📊 Current localStorage keys:', Object.keys(localStorage));
+      console.log('👤 Username:', localStorage.getItem('username'));
+      console.log('🔑 Login status:', localStorage.getItem('isLoggedIn'));
+      
+      const signInStatus = JSON.parse(localStorage.getItem('site_sign_in_status') || 'null');
+      console.log('🔐 Site sign-in status:', signInStatus);
+      
+      console.log('📡 Network status:', navigator.onLine ? 'Online' : 'Offline');
+      
+      // Log pending submissions
+      const pendingSignIns = JSON.parse(localStorage.getItem('site_sign_in_responses') || '[]');
+      const pendingDeerCull = JSON.parse(localStorage.getItem('deer_cull_responses') || '[]');
+      const pendingObservations = JSON.parse(localStorage.getItem('observations_responses') || '[]');
+      const pendingSignOuts = JSON.parse(localStorage.getItem('site_sign_out_responses') || '[]');
+      
+      console.log(`📥 Pending submissions: SignIns: ${pendingSignIns.length}, DeerCull: ${pendingDeerCull.length}, Observations: ${pendingObservations.length}, SignOuts: ${pendingSignOuts.length}`);
+    }, 1000);
+  });
