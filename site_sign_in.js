@@ -642,6 +642,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             updatePendingCount();
+            window.location.href = "index_page.html"
         } catch (error) {
             submitButton.removeAttribute("disabled");
             console.error("Submission error:", error);
@@ -756,7 +757,6 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             localStorage.removeItem("site_sign_in_responses");
         }
-        window.location.href = "index_page.html"
         updatePendingCount();
     }
 

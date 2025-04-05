@@ -611,7 +611,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             updatePendingCount();
-            window.location.href = "index_page.html"
+            // window.location.href = "index_page.html"
         } catch (error) {
             submitButton.removeAttribute("disabled");
             console.error("Submission error:", error);
@@ -629,7 +629,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 updateStatus("Network issue detected. Your form has been saved offline and will sync automatically when online.");
             }
 
-            window.location.href = "index_page.html"
+            // window.location.href = "index_page.html"
         }
     });
 
@@ -680,7 +680,6 @@ document.addEventListener("DOMContentLoaded", () => {
         //     // Remove the temporary photoIds field
         //     delete data.photoIds;
         // }
-
         responses.push(data);
         localStorage.setItem("deer_cull_responses", JSON.stringify(responses));
         updatePendingCount();
