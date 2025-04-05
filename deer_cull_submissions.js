@@ -611,7 +611,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             updatePendingCount();
-            // window.location.href = "index_page.html"
+            window.location.href = "index_page.html"
         } catch (error) {
             submitButton.removeAttribute("disabled");
             console.error("Submission error:", error);
@@ -629,7 +629,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 updateStatus("Network issue detected. Your form has been saved offline and will sync automatically when online.");
             }
 
-            // window.location.href = "index_page.html"
+            window.location.href = "index_page.html"
         }
     });
 
@@ -723,10 +723,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     delete response.photoIds;
                 }
 
+                response.action = "deer_cull";
+
                 if (navigator.onLine) {
                     await sendToGoogleSheet(response);
                     // delete photos
                     await Promise.all(JSON.parse(photoIds).map(id => deletePhotoFromIndexedDB(id)));
+                }else{
+                    unsyncedResponses.push(response); // Keep unsynced responses
                 }
 
                 updateStatus("Data synced successfully.");
@@ -749,7 +753,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function sendToGoogleSheet(data) {
-        data.action = "deer_cull";
         const scriptURL = "https://script.google.com/macros/s/AKfycbxHUmozCiDaUZ2bwTbtlNwuKKijFlr1d6z1RHQF2_engq-eEodaaHgmIoSStFdOa-iugA/exec";
         const response = await fetch(scriptURL, {
             method: "POST",

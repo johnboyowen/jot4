@@ -738,10 +738,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }
 
+                response.action = "signin"
+
                 if (navigator.onLine) {
                     await sendToGoogleSheet(response);
                     // delete photos
                     await Promise.all(JSON.parse(photoIds).map(id => deletePhotoFromIndexedDB(id)));
+                }else{
+                    unsyncedResponses.push(response);
                 }
                 
                 updateStatus("Data synced successfully.");
@@ -750,7 +754,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 unsyncedResponses.push(response);
             }
         }
-
         localStorage.setItem("site_sign_in_responses", JSON.stringify(unsyncedResponses));
         if (unsyncedResponses.length > 0) {
             updateStatus("Some data could not be synced.");
@@ -761,7 +764,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function sendToGoogleSheet(data) {
-        data.action = "signin"
         const scriptURL = "https://script.google.com/macros/s/AKfycbxHUmozCiDaUZ2bwTbtlNwuKKijFlr1d6z1RHQF2_engq-eEodaaHgmIoSStFdOa-iugA/exec";
         const response = await fetch(scriptURL, {
             method: "POST",
